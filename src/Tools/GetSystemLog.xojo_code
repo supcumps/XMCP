@@ -33,18 +33,16 @@ Inherits MCPKit.Tool
 		  If seconds > 3600 Then seconds = 3600
 
 		  Var sh As New Shell
-		  sh.Execute("log show --last " + seconds.ToString + "s --info " + _
+		  sh.Execute("log show --last " + seconds.ToString + "s " + _
 		    "--predicate 'process == """ + processName + """' 2>/dev/null")
 		  Var output As String = sh.Result
 
-		  // Strip the header line ("Timestamp  Thread  Type  Activity  PID  TTL")
-		  // and return only actual log entries.
+		  // Filter to only System.DebugLog messages.
+		  // System.DebugLog always writes with "(XojoFramework)" as the sender.
 		  Var lines() As String = output.Split(Chr(10))
 		  Var result() As String
 		  For Each line As String In lines
-		    If line.Trim = "" Then Continue
-		    If line.BeginsWith("Timestamp") Then Continue
-		    result.Add(line)
+		    If line.Contains("(XojoFramework)") Then result.Add(line)
 		  Next
 
 		  If result.Count = 0 Then
