@@ -57,10 +57,12 @@ Inherits MCPKit.ServerApplication
 		  New LookupClass, _
 		  New ListDocTopics, _
 		  New RevertProject, _
-		  New EstimateRequestCost _
+		  New EstimateRequestCost, _
+		  New GetDebugLog, _
+		  New GetSystemLog _
 		  )
 
-		  If Verbose Then System.DebugLog("XMCP server configured with 20 tools.")
+		  If Verbose Then System.DebugLog("XMCP server configured with 22 tools.")
 		  
 		End Sub
 	#tag EndEvent
@@ -70,7 +72,7 @@ Inherits MCPKit.ServerApplication
 		  If CommandLineParser.HelpRequested Then
 		    CommandLineParser.ShowHelp("Options")
 		    Print("")
-		    Print("MCP Tools (20):")
+		    Print("MCP Tools (22):")
 		    Print("")
 		    Print("  IDE Tools:")
 		    Print("  list_project_items   List child items at a project location")
@@ -97,6 +99,10 @@ Inherits MCPKit.ServerApplication
 		    Print("")
 		    Print("  Cost Awareness:")
 		    Print("  estimate_request_cost Estimate likely token cost and alternatives")
+		    Print("")
+		    Print("  Debug Tools:")
+		    Print("  get_debug_log        Read crash/exception log from /tmp/xmcp_debug.log")
+		    Print("  get_system_log       Read System.DebugLog output from macOS unified log")
 		    Print("")
 		    Print("Usage:")
 		    Print("  The XMCP server communicates via JSON-RPC over stdin/stdout (MCP protocol).")

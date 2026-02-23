@@ -2,7 +2,7 @@
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that gives AI assistants direct control over the [Xojo IDE](https://www.xojo.com). Built in Xojo using [MCPKit](https://github.com/gkjpettet/MCPKit) by Garry Pettet.
 
-XMCP connects to the Xojo IDE via its IPC socket and exposes 20 tools that let an AI navigate projects, read and write code, build and run applications, create project items, inspect and modify item descriptions and constants, look up Xojo documentation, and estimate request cost - all through the standard MCP protocol over stdin/stdout.
+XMCP connects to the Xojo IDE via its IPC socket and exposes 22 tools that let an AI navigate projects, read and write code, build and run applications, create project items, inspect and modify item descriptions and constants, look up Xojo documentation, read debug logs and system output, and estimate request cost - all through the standard MCP protocol over stdin/stdout.
 
 ## Requirements
 
@@ -74,7 +74,7 @@ XMCP retries both standard socket paths on each IDE request, so tools begin work
 
 ## Tools
 
-XMCP exposes 20 MCP tools organized into three categories.
+XMCP exposes 22 MCP tools organized into four categories.
 
 ### IDE Tools
 
@@ -238,6 +238,27 @@ Lists available Xojo documentation topics and pages from the `llms.txt` index. U
 |-----------|------|----------|-------------|
 | `filter` | String | No | Keyword to filter topics (e.g. `Desktop`, `database`, `networking`). If empty, returns all topics. |
 
+### Debug Tools
+
+These tools help diagnose runtime errors in Xojo apps by reading exception logs and system diagnostic output. For best results when building an app from scratch with XMCP, add an `App.UnhandledException` handler that writes to `/tmp/xmcp_debug.log`.
+
+#### `get_debug_log`
+
+Reads crash and exception info from `/tmp/xmcp_debug.log`. This file is written by `App.UnhandledException` handlers in Xojo apps that use the XMCP debug pattern. Call this after a crash or unexpected termination to retrieve exception details.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `clear` | Boolean | No | If true, deletes the log file after reading it. Default: false. |
+
+#### `get_system_log`
+
+Reads recent `System.DebugLog` output from the macOS unified log for a running Xojo debug app. The process name is the app name with `.debug` suffix (e.g. `MyApp.debug`).
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `process_name` | String | Yes | The process name to filter by, e.g. `MyApp.debug`. Use `get_project_info` to find the project name. |
+| `seconds` | Integer | No | How many seconds back to search the log. Default: 60, max: 3600. |
+
 ### Cost Awareness Tools
 
 These tools estimate likely token cost before execution and suggest lower-cost approaches.
@@ -265,9 +286,10 @@ XMCP
 │   ├── ToolResult         — Success/Failure result type
 │   ├── OptionParser       — CLI argument parsing
 │   └── Option             — CLI option definition
-└── Tools/                 — 20 MCP tool implementations
-    ├── IDE tools (14)     — Control the Xojo IDE via IPC
+└── Tools/                 — 22 MCP tool implementations
+    ├── IDE tools (16)     — Control the Xojo IDE via IPC
     ├── Doc tools (3)      — Search and browse local Xojo documentation
+    ├── Debug tools (2)    — Read crash logs and system diagnostic output
     └── Cost tools (1)     — Estimate request token cost and alternatives
 ```
 

@@ -33,7 +33,7 @@ Inherits MCPKit.Tool
 		  // not via Print — so we just call DoCommand and let the response come back.
 		  Var revealStr As String = If(reveal, "True", "False")
 		  Var script As String = _
-		  "DoCommand ""BuildApp"", " + buildType.ToString + ", " + revealStr + EndOfLine + _
+		  "DoCommand ""BuildApp " + buildType.ToString + " " + revealStr + """" + EndOfLine + _
 		  "Print """""
 
 		  // Builds can take a long time — use a 120 second timeout.

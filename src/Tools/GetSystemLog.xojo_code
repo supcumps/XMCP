@@ -1,0 +1,111 @@
+#tag Class
+Protected Class GetSystemLog
+Inherits MCPKit.Tool
+	#tag Method, Flags = &h0
+		Sub Constructor()
+		  Super.Constructor("get_system_log", "Reads recent System.DebugLog output from the macOS unified log for a running Xojo debug app. The process name is the app name with '.debug' suffix (e.g. 'MyApp.debug'). Use this to retrieve diagnostic messages written with System.DebugLog() in the app's code.")
+
+		  Parameters.Add(New MCPKit.ToolParameter("process_name", MCPKit.ToolParameterTypes.String_, _
+		  "The process name to filter by. For Xojo debug builds this is the app name with '.debug' suffix, e.g. 'MyApp.debug'. Use get_project_info to find the project name.", _
+		  False, "", True))
+
+		  Parameters.Add(New MCPKit.ToolParameter("seconds", MCPKit.ToolParameterTypes.Integer_, _
+		  "How many seconds back to search the log. Default is 60.", _
+		  True, 60, False))
+
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function Run(args() As MCPKit.ToolArgument) As MCPKit.ToolResult
+		  Var processName As String = ""
+		  Var seconds As Integer = 60
+		  For Each arg As MCPKit.ToolArgument In args
+		    If arg.Name = "process_name" Then processName = arg.Value.StringValue
+		    If arg.Name = "seconds" Then seconds = arg.Value.IntegerValue
+		  Next
+
+		  If processName = "" Then
+		    Return MCPKit.ToolResult.Failure("process_name is required. For Xojo debug builds use the app name with '.debug' suffix, e.g. 'MyApp.debug'.")
+		  End If
+
+		  If seconds < 1 Then seconds = 60
+		  If seconds > 3600 Then seconds = 3600
+
+		  Var sh As New Shell
+		  sh.Execute("log show --last " + seconds.ToString + "s --info " + _
+		    "--predicate 'process == """ + processName + """' 2>/dev/null")
+		  Var output As String = sh.Result
+
+		  // Strip the header line ("Timestamp  Thread  Type  Activity  PID  TTL")
+		  // and return only actual log entries.
+		  Var lines() As String = output.Split(Chr(10))
+		  Var result() As String
+		  For Each line As String In lines
+		    If line.Trim = "" Then Continue
+		    If line.BeginsWith("Timestamp") Then Continue
+		    result.Add(line)
+		  Next
+
+		  If result.Count = 0 Then
+		    Return MCPKit.ToolResult.Success("No log entries found for process '" + processName + "' in the last " + seconds.ToString + " seconds.")
+		  End If
+
+		  Return MCPKit.ToolResult.Success(String.FromArray(result, Chr(10)))
+
+		End Function
+	#tag EndMethod
+
+
+	#tag ViewBehavior
+		#tag ViewProperty
+			Name="Name"
+			Visible=true
+			Group="ID"
+			InitialValue=""
+			Type="String"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Index"
+			Visible=true
+			Group="ID"
+			InitialValue="-2147483648"
+			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Super"
+			Visible=true
+			Group="ID"
+			InitialValue=""
+			Type="String"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Left"
+			Visible=true
+			Group="Position"
+			InitialValue="0"
+			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Top"
+			Visible=true
+			Group="Position"
+			InitialValue="0"
+			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="Description"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="String"
+			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+	#tag EndViewBehavior
+End Class
+#tag EndClass
