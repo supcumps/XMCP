@@ -7,7 +7,7 @@ Protected Module MCPKit
 		  
 		  Var errorResponse As New JSONItem
 		  errorResponse.Value("jsonrpc") = "2.0"
-		  errorResponse.Value("id") = If(id = Nil, "null", id.StringValue)
+		  errorResponse.Value("id") = If(id.Type = Variant.TypeNil, Nil, id)
 		  
 		  Var error As New JSONItem
 		  error.Value("code") = Integer(errorType)

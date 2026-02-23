@@ -118,7 +118,7 @@ Inherits ConsoleApplication
 		  
 		  Var response As New JSONItem
 		  response.Value("jsonrpc") = "2.0"
-		  response.Value("id") = If(RequestID = Nil, "null", RequestID.StringValue)
+		  response.Value("id") = RequestID
 		  
 		  // Create the result object.
 		  Var result As New JSONItem
@@ -210,7 +210,19 @@ Inherits ConsoleApplication
 		  Var tool As MCPKit.Tool = GetToolNamed(toolName)
 		  
 		  // Get the arguments to the tool.
+		  If Not params.HasKey("arguments") Then
+		    Var message As String = "Missing `arguments` key in tool call params."
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
+		    If Verbose Then System.DebugLog(message)
+		    Return Nil
+		  End If
 		  Var argumentsJSON As JSONItem = params.Value("arguments")
+		  If argumentsJSON = Nil Then
+		    Var message As String = "The `arguments` value is not a valid object."
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
+		    If Verbose Then System.DebugLog(message)
+		    Return Nil
+		  End If
 		  
 		  // Convert the arguments from a JSONItem to an array of ToolArgument instances.
 		  Var arguments() As MCPKit.ToolArgument
@@ -249,7 +261,7 @@ Inherits ConsoleApplication
 		  
 		  Var response As New JSONItem
 		  response.Value("jsonrpc") = "2.0"
-		  response.Value("id") = If(RequestID = Nil, "null", RequestID.StringValue)
+		  response.Value("id") = RequestID
 		  
 		  // The response contains a result object.
 		  Var result As New JSONItem

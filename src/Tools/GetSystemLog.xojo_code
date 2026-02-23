@@ -29,6 +29,14 @@ Inherits MCPKit.Tool
 		    Return MCPKit.ToolResult.Failure("process_name is required. For Xojo debug builds use the app name with '.debug' suffix, e.g. 'MyApp.debug'.")
 		  End If
 
+		  // Whitelist process_name to prevent shell injection.
+		  // Only allow characters valid in a macOS process name.
+		  Var rx As New RegEx
+		  rx.SearchPattern = "^[A-Za-z0-9_. -]+$"
+		  If rx.Search(processName) = Nil Then
+		    Return MCPKit.ToolResult.Failure("Invalid process_name: only letters, digits, spaces, dots, hyphens and underscores are allowed.")
+		  End If
+
 		  If seconds < 1 Then seconds = 60
 		  If seconds > 3600 Then seconds = 3600
 

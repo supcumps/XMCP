@@ -78,7 +78,16 @@ Protected Class ToolParameter
 		  json.Value("type") = TypeAsString
 		  json.Value("description") = Description
 		  If HasDefault Then
-		    json.Value("default") = If(Default = Nil, "null", Default.StringValue)
+		    Select Case Type
+		    Case MCPKit.ToolParameterTypes.Boolean_
+		      json.Value("default") = Default.BooleanValue
+		    Case MCPKit.ToolParameterTypes.Integer_
+		      json.Value("default") = Default.IntegerValue
+		    Case MCPKit.ToolParameterTypes.Number_
+		      json.Value("default") = Default.DoubleValue
+		    Else
+		      json.Value("default") = If(Default = Nil, "null", Default.StringValue)
+		    End Select
 		  End If
 		  
 		  Return json

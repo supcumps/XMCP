@@ -68,7 +68,11 @@ Inherits MCPKit.Tool
 		  If response.HasKey("response") Then
 		    Var resp As Variant = response.Value("response")
 		    If resp.Type = Variant.TypeString Then
-		      Return MCPKit.ToolResult.Success(resp.StringValue)
+		      Var respStr As String = resp.StringValue
+		      If respStr.BeginsWith("ERROR:") Then
+		        Return MCPKit.ToolResult.Failure(respStr)
+		      End If
+		      Return MCPKit.ToolResult.Success(respStr)
 		    Else
 		      Var respJSON As JSONItem = response.Value("response")
 		      Return MCPKit.ToolResult.Success(respJSON.ToString)
