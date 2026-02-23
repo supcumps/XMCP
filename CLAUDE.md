@@ -37,7 +37,7 @@ MCP Client (stdin/stdout JSON-RPC)
 
 **`MCPKit/`** — The MCP protocol framework (8 classes):
 - `ServerApplication` — JSON-RPC stdin/stdout loop and tool dispatch
-- `Tool` — Base class all 18 tools inherit from
+- `Tool` — Base class all 20 tools inherit from
 - `ToolParameter`, `ToolArgument`, `ToolResult` — Parameter/result types
 - `OptionParser`, `Option`, `OptionException` — CLI argument parsing
 
