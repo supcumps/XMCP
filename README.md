@@ -8,7 +8,7 @@ XMCP connects to the Xojo IDE via its IPC socket and exposes 20 tools that let a
 
 - **Xojo IDE** available for IDE tools (socket at `/tmp/XojoIDE` or `/private/tmp/XojoIDE`)
 - **macOS** (current implementation targets macOS paths for IDE socket discovery and documentation auto-detection)
-- **Xojo documentation** (optional) - automatically detected if the Xojo IDE has been run at least once
+- **Xojo documentation** (optional) - install via **Xojo IDE → Preferences → General → Install Local Documentation**, then auto-detected by XMCP
 
 ## Installation
 
@@ -286,7 +286,7 @@ For each IDE request, XMCP tries the last successful socket path first, then `/t
 
 ### Documentation Auto-Detection
 
-On startup, XMCP scans `~/Library/Application Support/Xojo/Xojo/` for the newest Xojo version directory that contains `Documentation/llms-full.txt`. This file (along with `llms.txt` and `_sources/*.rst.txt`) is shipped with the Xojo IDE specifically for LLM consumption.
+On startup, XMCP scans `~/Library/Application Support/Xojo/Xojo/` for the newest Xojo version directory that contains `Documentation/llms-full.txt`. This file (along with `llms.txt` and `_sources/*.rst.txt`) is available via **Xojo IDE → Preferences → General → Install Local Documentation** and is intended specifically for LLM consumption.
 
 ## Known Limitations
 
