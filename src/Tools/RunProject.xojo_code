@@ -12,13 +12,16 @@ Inherits MCPKit.Tool
 		Function Run(args() As MCPKit.ToolArgument) As MCPKit.ToolResult
 		  #Pragma Unused args
 
+		  // DoCommand "RunApp" returns a buildError JSON object on failure,
+		  // or {} on success. The IDE returns it directly as the response value —
+		  // not via Print — so we just call DoCommand and let the response come back.
 		  Var script As String = "DoCommand ""RunApp""" + EndOfLine + _
-		  "Print ""Project launched in debug mode."""
+		  "Print """""
 
 		  If App.IDE = Nil Then
 		    Return MCPKit.ToolResult.Failure("Xojo IDE is not connected. Start the IDE and restart XMCP.")
 		  End If
-		  
+
 		  Var response As JSONItem = App.IDE.SendAndReceive(script, 30000)
 		  If response = Nil Then
 		    If App.IDE.LastErrorMessage <> "" Then
@@ -29,15 +32,63 @@ Inherits MCPKit.Tool
 
 		  If response.HasKey("response") Then
 		    Var resp As Variant = response.Value("response")
+
+		    // DoCommand returns a JSON string we printed — parse it.
 		    If resp.Type = Variant.TypeString Then
-		      Return MCPKit.ToolResult.Success(resp.StringValue)
+		      Var respStr As String = resp.StringValue
+		      Try
+		        Var resultJSON As New JSONItem(respStr)
+		        Return ParseDoCommandResult(resultJSON)
+		      Catch e As JSONException
+		        // Not JSON — treat as a plain success message.
+		        Return MCPKit.ToolResult.Success(respStr)
+		      End Try
 		    Else
+		      // Already a JSON object in the response envelope.
 		      Var respJSON As JSONItem = response.Value("response")
-		      Return MCPKit.ToolResult.Success(respJSON.ToString)
+		      Return ParseDoCommandResult(respJSON)
 		    End If
 		  End If
 
 		  Return MCPKit.ToolResult.Failure("Unexpected response from IDE: " + response.ToString)
+
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function ParseDoCommandResult(resultJSON As JSONItem) As MCPKit.ToolResult
+		  /// Parses the JSON returned by DoCommand "RunApp" / "BuildApp".
+		  /// Success: empty {} → "Project launched in debug mode."
+		  /// Failure: {"buildError": {"errors": [...]}} → formatted error list.
+
+		  If resultJSON.Count = 0 Then
+		    Return MCPKit.ToolResult.Success("Project launched in debug mode.")
+		  End If
+
+		  If resultJSON.HasKey("buildError") Then
+		    Var buildError As JSONItem = resultJSON.Value("buildError")
+		    If buildError.HasKey("errors") Then
+		      Var errors As JSONItem = buildError.Value("errors")
+		      Var lines() As String
+		      Var i As Integer
+		      For i = 0 To errors.Count - 1
+		        Var err As JSONItem = errors.Value(i)
+		        Var errType As String = If(err.HasKey("type"), err.Value("type").StringValue, "Error")
+		        Var msg As String = If(err.HasKey("message"), err.Value("message").StringValue, "")
+		        Var location As String = If(err.HasKey("location"), err.Value("location").StringValue, "")
+		        Var position As String = If(err.HasKey("position"), err.Value("position").StringValue, "")
+		        Var line As String = errType + ": " + msg
+		        If location <> "" Then line = line + " [" + location + "]"
+		        If position <> "" And position <> location Then line = line + " (" + position + ")"
+		        lines.Add(line)
+		      Next i
+		      Return MCPKit.ToolResult.Failure("Build errors (" + errors.Count.ToString + "):" + EndOfLine + String.FromArray(lines, EndOfLine))
+		    End If
+		    Return MCPKit.ToolResult.Failure("Build failed: " + buildError.ToString)
+		  End If
+
+		  // Unknown JSON structure — return raw for debugging.
+		  Return MCPKit.ToolResult.Failure("Run failed: " + resultJSON.ToString)
 
 		End Function
 	#tag EndMethod

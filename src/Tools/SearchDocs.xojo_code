@@ -3,7 +3,7 @@ Protected Class SearchDocs
 Inherits MCPKit.Tool
 	#tag Method, Flags = &h0
 		Sub Constructor()
-		  Super.Constructor("search_docs", "Searches the local Xojo documentation by keyword. Returns matching sections with surrounding context from the full documentation text. Use this to find information about Xojo classes, methods, properties, language features, and best practices.")
+		  Super.Constructor("search_docs", "Searches the local Xojo documentation guides and tutorials by keyword. Returns matching sections with surrounding context. Use this for conceptual questions about language features, patterns, and best practices. To look up a specific class, method, or property by name, use lookup_class instead.")
 
 		  Parameters.Add(New MCPKit.ToolParameter("query", MCPKit.ToolParameterTypes.String_, _
 		  "The search term to look for (e.g. 'JSONItem', 'DesktopButton', 'FolderItem', 'database').", _
