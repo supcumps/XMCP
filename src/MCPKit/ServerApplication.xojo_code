@@ -29,6 +29,7 @@ Inherits ConsoleApplication
 		    Try
 		      // Read from stdin and ignore blank lines.
 		      Var inputLine As String = Input
+		      If StdIn.EndOfFile Then Exit  // stdin was closed - terminate gracefully.
 		      If inputLine = "" Then Continue
 		      
 		      If Verbose Then System.DebugLog(Name + " received: " + inputLine)
