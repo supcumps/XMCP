@@ -24,14 +24,14 @@ There are no automated tests or linting tools; validation happens through Xojo I
 ```
 MCP Client (stdin/stdout JSON-RPC)
     → MCPKit.ServerApplication  (request routing)
-        → Tool.Run()            (each of 18 tools)
+        → Tool.Run()            (each of 20 tools)
             → IDECommunicator   (IPCSocket to Xojo IDE)
                 → Xojo IDE      (executes IDE scripts, returns results)
 ```
 
 ### Key Components
 
-**`App.xojo_code`** — Entry point. Registers all 18 tools in `Configure()`, auto-detects the Xojo documentation path under `~/Library/Application Support/Xojo/`, initializes `IDECommunicator`. The global `App.IDE` instance is used by all IDE tools.
+**`App.xojo_code`** — Entry point. Registers all 20 tools in `Configure()`, auto-detects the Xojo documentation path under `~/Library/Application Support/Xojo/`, initializes `IDECommunicator`. The global `App.IDE` instance is used by all IDE tools.
 
 **`IDECommunicator.xojo_code`** — Handles all IDE socket communication. Uses IDE Communicator Protocol v2 over a Unix domain socket (`/tmp/XojoIDE` or `/private/tmp/XojoIDE`). Messages are NUL-terminated JSON. Sends a `{"protocol": 2}` handshake, then uses tag-based correlation for synchronous request/response. Default timeout is 10 seconds; builds use 120 seconds.
 
@@ -41,9 +41,9 @@ MCP Client (stdin/stdout JSON-RPC)
 - `ToolParameter`, `ToolArgument`, `ToolResult` — Parameter/result types
 - `OptionParser`, `Option`, `OptionException` — CLI argument parsing
 
-**`Tools/`** — 18 tool implementations, each inheriting `MCPKit.Tool` and implementing `Run(args() As MCPKit.ToolArgument) As MCPKit.ToolResult`:
-- **14 IDE tools**: list/navigate/read/write project items, build, run, stop, create items, run IDE scripts, get project info, revert
-- **3 documentation tools**: search docs, lookup class, list topics (operate on cached `llms-full.txt` / `llms.txt`)
+**`Tools/`** — 20 tool implementations, each inheriting `MCPKit.Tool` and implementing `Run(args() As MCPKit.ToolArgument) As MCPKit.ToolResult`:
+- **16 IDE tools**: list/navigate/read/write project items, build, run, stop, create items, run IDE scripts, get project info, revert, get/set item description, get/set constant value, get/set selected text
+- **3 documentation tools**: search docs (guides/tutorials), lookup class (API reference), list topics (operate on cached `llms-full.txt` / `llms.txt`)
 - **1 cost tool**: `EstimateRequestCost` (static heuristics, no IDE call)
 
 ### Tool Implementation Pattern
@@ -85,6 +85,8 @@ And receives:
 ```
 
 The IDE script language is the Xojo IDE Scripting language (not Xojo itself). Scripts use `Print` to return values. Use `RunIDEScript` tool or `mcp__xmcp__run_ide_script` to experiment with scripts interactively.
+
+`DoCommand "RunApp"` and `DoCommand "BuildApp"` are special: they return a `buildError` JSON object directly as the response value (not via `Print`) on failure, or an empty `{}` on success. The `run_project` and `build_project` tools handle this by calling `DoCommand` followed by `Print ""`, then parsing the response value.
 
 ## Development Notes
 

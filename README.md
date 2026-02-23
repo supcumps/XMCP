@@ -210,7 +210,7 @@ These tools provide access to the local Xojo documentation, enabling the AI to l
 
 #### `search_docs`
 
-Searches the full Xojo documentation (`llms-full.txt`) by keyword. Returns matching sections with surrounding context lines.
+Searches the local Xojo documentation guides and tutorials by keyword. Returns matching sections with surrounding context lines. Use this for conceptual questions about language features, patterns, and best practices. To look up a specific class, method, or property by name, use `lookup_class` instead.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
