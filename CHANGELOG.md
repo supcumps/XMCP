@@ -5,6 +5,7 @@ All notable changes to XMCP will be documented here.
 ## [Unreleased]
 
 ### Fixed
+- XMCP server processes now terminate gracefully when the MCP client closes stdin, preventing zombie processes from accumulating
 - `run_project` and `build_project` now correctly capture and report compile errors from the Xojo IDE instead of always returning success
 - Both tools use `DoCommand "RunApp"` / `DoCommand "BuildApp"` and parse the structured `buildError` JSON response
 - Error output is formatted as a readable list with error type, message, location, and position
