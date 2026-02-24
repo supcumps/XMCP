@@ -16,7 +16,7 @@ XMCP gives you direct control over the Xojo IDE via 22 tools:
 - **IDE scripting**: `run_ide_script` (escape hatch for anything not covered)
 - **Documentation**: `search_docs`, `lookup_class`, `list_doc_topics`
 - **Debugging**: `get_debug_log`, `get_system_log`
-- **Cost estimation**: `estimate_request_cost`
+- **Cost estimation**: `estimate_request_cost` — call this proactively before broad or documentation-heavy tasks to check whether the approach is likely to be expensive, and to get suggestions for cheaper alternatives
 
 ---
 
