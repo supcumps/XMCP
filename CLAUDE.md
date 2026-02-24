@@ -116,4 +116,43 @@ Some items in a Xojo project cannot be accessed via the IDE scripting API. The w
 - `src/<ClassName>.xojo_code` — class, module, or app-level code
 - `src/<WindowName>.xojo_window` — window UI, controls, and event handlers
 - `src/XMCP.xojo_project` — project manifest (XML)
-- `src/usage-guide.md` — the MCP resource distributed with the binary (edit this to update AI guidance without rebuilding)
+- `src/usage-guide.md` — the MCP resource distributed next to the binary
+
+## usage-guide.md
+
+`usage-guide.md` is XMCP's self-awareness layer. It is distributed next to the XMCP binary at build time and exposed via the MCP `resources` protocol (`resources/list` / `resources/read`). Compatible clients like Claude Code fetch it automatically at session start.
+
+The file gives the AI immediate context about:
+- What XMCP can and cannot do
+- Known IDE scripting API limitations and their workarounds
+- The direct file editing fallback workflow
+- Correct `.xojo_window` event handler format
+- Debug logging behavior (debug vs. built apps)
+
+**To update AI guidance without rebuilding:** edit `src/usage-guide.md` directly — the binary reads it from disk at runtime from the same directory as the executable. When distributing XMCP, place `usage-guide.md` next to the binary.
+
+## App.UnhandledException pattern
+
+When building a Xojo app with XMCP, add this event to `App` to enable `get_debug_log` crash reporting. Note: only fires in built apps — the Xojo debugger intercepts exceptions during debug sessions.
+
+```xojo
+#tag Event
+	Sub UnhandledException(error As RuntimeException)
+	  Var msg As String = "Error: " + error.Message + EndOfLine
+	  msg = msg + "Error Number: " + Str(error.ErrorNumber) + EndOfLine
+	  If error.Stack <> Nil Then
+	    msg = msg + "Stack:" + EndOfLine
+	    For Each frame As String In error.Stack
+	      msg = msg + "  " + frame + EndOfLine
+	    Next
+	  End If
+
+	  Var f As New FolderItem("/tmp/xmcp_debug.log")
+	  Var stream As TextOutputStream = TextOutputStream.Open(f)
+	  stream.Write(msg)
+	  stream.Close
+	End Sub
+#tag EndEvent
+```
+
+Add this directly to `App.xojo_code` before the `#tag ViewBehavior` section, then call `revert_project` to reload.

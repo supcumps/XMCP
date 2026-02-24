@@ -4,6 +4,8 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that g
 
 XMCP connects to the Xojo IDE via its IPC socket and exposes 22 tools that let an AI navigate projects, read and write code, build and run applications, create project items, inspect and modify item descriptions and constants, look up Xojo documentation, read debug logs and system output, and estimate request cost - all through the standard MCP protocol over stdin/stdout.
 
+XMCP also ships a `usage-guide.md` file next to the binary, exposed as an MCP resource. Compatible clients (e.g. Claude Code) fetch it automatically at session start, giving the AI immediate awareness of XMCP's capabilities, known IDE scripting limitations, and fallback strategies — without any extra configuration. You can edit the file to add project-specific notes without rebuilding.
+
 ## Requirements
 
 - **Xojo IDE** available for IDE tools (socket at `/tmp/XojoIDE` or `/private/tmp/XojoIDE`)
