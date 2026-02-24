@@ -31,7 +31,7 @@ Inherits MCPKit.Tool
 		  "If result Then" + EndOfLine + _
 		  "  Print ""Selected: "" + Location + "" ("" + TypeOfCurrentLocation + "")""" + EndOfLine + _
 		  "Else" + EndOfLine + _
-		  "  Print ""ERROR: Could not select item: " + itemPath.ReplaceAll("""", """""") + """" + EndOfLine + _
+		  "  Print ""ERROR: Could not select '" + itemPath.ReplaceAll("""", """""") + "'. The IDE scripting API cannot navigate to method-level items or window event handlers. Use get_code or set_code with the full dot-separated path instead (they auto-navigate). For window event handlers, edit the .xojo_window file directly on disk and call revert_project.""" + EndOfLine + _
 		  "End If"
 
 		  If App.IDE = Nil Then

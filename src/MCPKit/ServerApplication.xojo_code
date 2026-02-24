@@ -38,12 +38,14 @@ Inherits ConsoleApplication
 		      Var request As New JSONItem(inputLine)
 		      
 		      // Get the request ID. Notifications do not include an ID.
-		      RequestID = request.Lookup("id", "")
-		      If RequestID = "" Then
+		      If request.HasKey("id") Then
+		        RequestID = request.Value("id")
+		      Else
+		        RequestID = Nil
 		        // Could be a notification...
 		        If request.HasKey("method") = False Or _
 		          request.Value("method").StringValue.BeginsWith("notifications/") = False Then
-		          // Not a notification so much be an error.
+		          // Not a notification so it must be an error.
 		          MCPKit.Error(Nil, MCPKit.ErrorTypes.InvalidRequest, "Missing `id` in request.")
 		          If Verbose Then System.DebugLog("Missing `id` in request.")
 		          Exit
@@ -128,6 +130,8 @@ Inherits ConsoleApplication
 		  Var capabilities As New JSONItem
 		  Var tools As New JSONItem("{}")  // Empty object means we support tools.
 		  capabilities.Value("tools") = tools
+		  Var resources As New JSONItem("{}")  // Empty object means we support resources.
+		  capabilities.Value("resources") = resources
 		  result.Value("capabilities") = capabilities
 		  
 		  // Add server info.
@@ -324,6 +328,12 @@ Inherits ConsoleApplication
 		  Case "tools/call"
 		    Return HandleToolsCall(request)
 		    
+		  Case "resources/list"
+		    Return HandleResourcesList()
+		    
+		  Case "resources/read"
+		    Return HandleResourcesRead(request)
+		    
 		  Else
 		    
 		    If method.BeginsWith("notifications/") Then
@@ -334,6 +344,86 @@ Inherits ConsoleApplication
 		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.MethodNotFound, "Method not found: " + method)
 		    Return Nil
 		  End Select
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function HandleResourcesList() As JSONItem
+		  /// Returns a JSON response listing the available MCP resources.
+		  
+		  Var response As New JSONItem
+		  response.Value("jsonrpc") = "2.0"
+		  response.Value("id") = RequestID
+		  
+		  Var result As New JSONItem
+		  Var resourcesArray As New JSONItem("[]")
+		  
+		  // Find usage-guide.md next to the executable.
+		  Var guideFile As FolderItem = App.ExecutableFile.Parent.Child("usage-guide.md")
+		  If guideFile <> Nil And guideFile.Exists Then
+		    Var resource As New JSONItem
+		    resource.Value("uri") = "file://usage-guide.md"
+		    resource.Value("name") = "XMCP Usage Guide"
+		    resource.Value("description") = "Guide for AI assistants: XMCP capabilities, limitations, and fallback strategies for direct file editing."
+		    resource.Value("mimeType") = "text/markdown"
+		    resourcesArray.Add(resource)
+		  End If
+		  
+		  result.Value("resources") = resourcesArray
+		  response.Value("result") = result
+		  Return response
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function HandleResourcesRead(request As JSONItem) As JSONItem
+		  /// Returns the content of a requested MCP resource.
+		  
+		  If Not request.HasKey("params") Then
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidRequest, "Missing `params` in resources/read request.")
+		    Return Nil
+		  End If
+		  
+		  Var params As JSONItem = request.Value("params")
+		  Var uri As String = params.Lookup("uri", "")
+		  
+		  If uri <> "file://usage-guide.md" Then
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, "Unknown resource URI: " + uri)
+		    Return Nil
+		  End If
+		  
+		  Var guideFile As FolderItem = App.ExecutableFile.Parent.Child("usage-guide.md")
+		  If guideFile = Nil Or Not guideFile.Exists Then
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.ServerError, "usage-guide.md not found next to XMCP executable.")
+		    Return Nil
+		  End If
+		  
+		  Var content As String = ""
+		  Try
+		    Var stream As TextInputStream = TextInputStream.Open(guideFile)
+		    content = stream.ReadAll
+		    stream.Close
+		  Catch e As RuntimeException
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.ServerError, "Could not read usage-guide.md: " + e.Message)
+		    Return Nil
+		  End Try
+		  
+		  Var response As New JSONItem
+		  response.Value("jsonrpc") = "2.0"
+		  response.Value("id") = RequestID
+		  
+		  Var result As New JSONItem
+		  Var contentsArray As New JSONItem("[]")
+		  Var blob As New JSONItem
+		  blob.Value("uri") = "file://usage-guide.md"
+		  blob.Value("mimeType") = "text/markdown"
+		  blob.Value("text") = content
+		  contentsArray.Add(blob)
+		  result.Value("contents") = contentsArray
+		  response.Value("result") = result
+		  Return response
 		  
 		End Function
 	#tag EndMethod

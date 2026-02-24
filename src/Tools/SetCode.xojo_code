@@ -42,12 +42,12 @@ Inherits MCPKit.Tool
 		    script = "Dim result As Boolean = SelectProjectItem(""" + _
 		    location.ReplaceAll("""", """""") + """)" + EndOfLine + _
 		    "If Not result Then" + EndOfLine + _
-		    "  Print ""ERROR: Could not navigate to: " + location.ReplaceAll("""", """""") + """" + EndOfLine + _
+		    "  Print ""ERROR: Could not navigate to: " + location.ReplaceAll("""", """""") + ". For window event handlers, edit the .xojo_window file directly on disk and call revert_project.""" + EndOfLine + _
 		    "Else" + EndOfLine + _
 		    "  Try" + EndOfLine + _
 		    IndentLines(writeCodeScript, "    ") + EndOfLine + _
 		    "  Catch" + EndOfLine + _
-		    "    Print ""ERROR: No code editor is active. Navigate to a method or property first.""" + EndOfLine + _
+		    "    Print ""ERROR: No code editor is active. Navigate to a method or property first, or use get_project_info to find the project directory and edit the .xojo_code file directly, then call revert_project.""" + EndOfLine + _
 		    "  End Try" + EndOfLine + _
 		    "End If"
 		  Else
@@ -55,7 +55,7 @@ Inherits MCPKit.Tool
 		    "Try" + EndOfLine + _
 		    IndentLines(writeCodeScript, "  ") + EndOfLine + _
 		    "Catch" + EndOfLine + _
-		    "  Print ""ERROR: No code editor is active. Navigate to a method or property first.""" + EndOfLine + _
+		    "  Print ""ERROR: No code editor is active. Navigate to a method or property first, or use get_project_info to find the project directory and edit the .xojo_code file directly, then call revert_project.""" + EndOfLine + _
 		    "End Try"
 		  End If
 

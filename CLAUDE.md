@@ -99,3 +99,21 @@ The IDE script language is the Xojo IDE Scripting language (not Xojo itself). Sc
 - Source files are `.xojo_code` (plain text, one class/module per file) and `.xojo_project` (XML project manifest). These can be edited as plain text or through the IDE.
 - Verbose logging to stderr can be enabled with the `-v/--verbose` CLI flag.
 - Documentation is auto-detected from versioned paths; the `--docs-path` flag overrides this.
+
+## Direct File Editing Fallback (for development and testing)
+
+Some items in a Xojo project cannot be accessed via the IDE scripting API. The workaround is to edit source files directly on disk and use `revert_project` to reload.
+
+**When this is needed:**
+- Window event handlers (`Window1.Opening`, `Window1.Close`, etc.) — these live in `.xojo_window` files and are invisible to IDE scripting
+- Any situation where `get_code`/`set_code` returns "No code editor is active" for a known-valid item
+
+**Workflow:**
+1. Edit the `.xojo_code` or `.xojo_window` file directly as plain text
+2. Call `revert_project` (or `DoCommand "Revert"` in an IDE script) to reload the project
+
+**File structure reference:**
+- `src/<ClassName>.xojo_code` — class, module, or app-level code
+- `src/<WindowName>.xojo_window` — window UI, controls, and event handlers
+- `src/XMCP.xojo_project` — project manifest (XML)
+- `src/usage-guide.md` — the MCP resource distributed with the binary (edit this to update AI guidance without rebuilding)

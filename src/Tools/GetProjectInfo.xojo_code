@@ -23,7 +23,7 @@ Inherits MCPKit.Tool
 		  If App.IDE = Nil Then
 		    Return MCPKit.ToolResult.Failure("Xojo IDE is not connected. Start the IDE and restart XMCP.")
 		  End If
-		  
+
 		  Var response As JSONItem = App.IDE.SendAndReceive(script)
 		  If response = Nil Then
 		    If App.IDE.LastErrorMessage <> "" Then
@@ -34,12 +34,30 @@ Inherits MCPKit.Tool
 
 		  If response.HasKey("response") Then
 		    Var resp As Variant = response.Value("response")
+		    Var text As String
 		    If resp.Type = Variant.TypeString Then
-		      Return MCPKit.ToolResult.Success(resp.StringValue)
+		      text = resp.StringValue
 		    Else
 		      Var respJSON As JSONItem = response.Value("response")
-		      Return MCPKit.ToolResult.Success(respJSON.ToString)
+		      text = respJSON.ToString
 		    End If
+
+		    // Derive project directory from the project file path (in Xojo code, not IDE script).
+		    Var projectPath As String = ""
+		    For Each line As String In text.Split(Chr(10))
+		      If line.BeginsWith("Project: ") Then
+		        projectPath = line.Middle(9).Trim
+		        Exit
+		      End If
+		    Next
+		    If projectPath <> "" Then
+		      Var projectFile As New FolderItem(projectPath, FolderItem.PathModes.Shell)
+		      If projectFile <> Nil And projectFile.Parent <> Nil Then
+		        text = text + Chr(10) + "Project Directory: " + projectFile.Parent.ShellPath
+		      End If
+		    End If
+
+		    Return MCPKit.ToolResult.Success(text)
 		  End If
 
 		  Return MCPKit.ToolResult.Failure("Unexpected response from IDE: " + response.ToString)
