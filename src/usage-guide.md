@@ -22,18 +22,22 @@ XMCP gives you direct control over the Xojo IDE via 22 tools:
 
 ## Known limitations of the IDE scripting API
 
-### 1. Cannot navigate to method-level items with `select_project_item`
+### 1. Cannot navigate to method-level items or events with `select_project_item`
 
 The Xojo IDE scripting API (`SelectProjectItem`) can navigate to top-level items, classes, modules, and windows — but **not** to individual methods, properties, or event implementations within them.
+
+`list_project_items` also does not list events — only methods, properties, and constants appear as children.
 
 **Symptom**: `select_project_item` returns `ERROR: Could not select 'Window1.Button1.Pressed'. The IDE scripting API cannot navigate to method-level items...`
 
 **Solution**: Use `get_code` or `set_code` with the full dot-separated path. These tools navigate automatically before reading or writing.
 
 ```
-get_code(location: "Window1.Button1.Pressed")   ✓
-set_code(code: "...", location: "App.MyMethod") ✓
-select_project_item(item_path: "Window1.Button1.Pressed") ✗
+get_code(location: "Window1.Button1.Pressed")      ✓
+get_code(location: "App.UnhandledException")       ✓
+set_code(code: "...", location: "App.MyMethod")    ✓
+select_project_item(item_path: "App.UnhandledException") ✗
+list_project_items(location: "App")  → events not listed  ✗
 ```
 
 ### 2. Window event handlers cannot be accessed via IDE tools
@@ -73,8 +77,19 @@ When IDE tools cannot access an item, edit the source files directly on disk and
 3. **Edit the file directly**
    Use standard file read/write tools. The `.xojo_code` format is plain text with `#tag` markers. Follow the existing structure exactly.
 
+   Window event handlers (Opening, Close, Resized, etc.) go in `#tag WindowCode` using `#tag Event` tags:
+   ```
+   #tag WindowCode
+   	#tag Event
+   		Sub Opening()
+   		  ' your code here
+   		End Sub
+   	#tag EndEvent
+   #tag EndWindowCode
+   ```
+
 4. **Reload in the IDE**
-   Call `revert_project` to reload all changed files from disk into the IDE.
+   Call `revert_project` to reload all changed files from disk into the IDE. The user may see a confirmation prompt in the IDE — they need to accept it for the reload to complete.
 
 ### When to use direct file editing
 
@@ -93,8 +108,9 @@ When IDE tools cannot access an item, edit the source files directly on disk and
 - Call `get_project_info` early to understand the project structure and get the directory path
 - Use `list_project_items` to explore the project tree before navigating
 - Use `run_ide_script` to run arbitrary IDE scripting commands when no dedicated tool exists
-- After a crash or unexpected termination, call `get_debug_log` to retrieve exception details
-- Add an `App.UnhandledException` handler to your Xojo project that writes to `/tmp/xmcp_debug.log` for automatic crash logging
+- Use `get_system_log` to retrieve `System.DebugLog` output — works for both debug builds (`AppName.debug`) and built apps (`AppName`)
+- The Xojo debugger intercepts unhandled exceptions in debug builds — `UnhandledException` is not called; exceptions are shown in the IDE debugger instead
+- For built apps, add an `App.UnhandledException` handler that writes to `/tmp/xmcp_debug.log`, then use `get_debug_log` after a crash to retrieve the full exception message and stack trace
 
 ---
 

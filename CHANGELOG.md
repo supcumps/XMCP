@@ -4,6 +4,26 @@ All notable changes to XMCP will be documented here.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-02-24
+
+### Added
+- MCP `resources` protocol support: `resources/list` and `resources/read` — clients can now fetch `usage-guide.md` as an MCP resource at session start
+- `get_project_info` now returns a `Project Directory:` line with the full path to the project folder, enabling direct file editing workflows
+- `usage-guide.md` is now distributed next to the binary and exposed as an MCP resource — AI clients receive it automatically; users can edit it without rebuilding
+
+### Fixed
+- Shell injection prevention in `get_system_log`: `process_name` parameter is now validated against a whitelist regex before interpolation into the shell command
+- JSON-RPC `id` type preservation: integer ids are now correctly echoed back as integers (not coerced to strings), fixing protocol compliance
+- `ToolParameter.ToJSONItem` now emits correct JSON types for Boolean and Integer defaults (not always String)
+- `MCPKit.Error()` now emits JSON `null` for missing ids instead of an empty string
+- `get_selected_text` and `set_selected_text` now return `Failure` instead of `Success` when the IDE returns an `ERROR:` string
+- RequestID lookup fixed: integer ids no longer cause the server to exit with "Missing id" on subsequent requests
+
+### Changed
+- `get_system_log` now works for both debug builds (`AppName.debug`) and built apps (`AppName`) — not just debug builds as previously documented
+- Actionable error messages in `select_project_item`, `get_code`, and `set_code`: errors now guide the AI to the correct alternative strategy (direct file editing, `revert_project`, etc.)
+- `usage-guide.md` expanded with tested guidance: window event handler file format, `list_project_items` event limitation, debug vs. built app logging behavior
+
 ## [1.1.0] - 2026-02-23
 
 ### Added

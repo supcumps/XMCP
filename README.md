@@ -252,11 +252,11 @@ Reads crash and exception info from `/tmp/xmcp_debug.log`. This file is written 
 
 #### `get_system_log`
 
-Reads recent `System.DebugLog` output from the macOS unified log for a running Xojo debug app. The process name is the app name with `.debug` suffix (e.g. `MyApp.debug`).
+Reads recent `System.DebugLog` output from the macOS unified log. Works for both debug builds (`AppName.debug`) and built apps (`AppName`).
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `process_name` | String | Yes | The process name to filter by, e.g. `MyApp.debug`. Use `get_project_info` to find the project name. |
+| `process_name` | String | Yes | The process name to filter by. Debug builds use `AppName.debug`; built apps use `AppName`. Use `get_project_info` to find the project name. |
 | `seconds` | Integer | No | How many seconds back to search the log. Default: 60, max: 3600. |
 
 ### Cost Awareness Tools
@@ -271,6 +271,16 @@ Estimates expected token impact for a proposed request and optionally uses plann
 |-----------|------|----------|-------------|
 | `request` | String | Yes | Natural-language request to estimate (for example: `Add a ListBox to Window1`). |
 | `planned_tools` | String | No | Optional comma-separated tool names you expect to call (for example: `select_project_item,create_project_item`). |
+
+## Resources
+
+XMCP exposes one MCP resource that AI clients can fetch at session start:
+
+| URI | Name | Description |
+|-----|------|-------------|
+| `file://usage-guide.md` | XMCP Usage Guide | AI-facing guide: capabilities, known limitations, fallback strategies, and tips |
+
+The `usage-guide.md` file is distributed next to the XMCP binary. You can edit it to add project-specific notes or custom conventions without rebuilding. Compatible MCP clients (e.g. Claude Code) fetch it automatically via `resources/list` and `resources/read`.
 
 ## Architecture
 
@@ -316,7 +326,7 @@ On startup, XMCP scans `~/Library/Application Support/Xojo/Xojo/` for the newest
 - **IDE tools require an open project** — the Xojo IDE scripting socket must be available and a project must be loaded.
 - **Documentation tools require local docs** — depend on `llms-full.txt`, `llms.txt`, and `_sources/*.rst.txt` files shipped with the Xojo IDE.
 - **`get_code`, `set_code`, `get_selected_text`, `set_selected_text` require a method or property to be active** — these tools operate on the code editor view. If the selected item in the Navigator is a class, module, or folder (not a method, property, or other code item), they return an error: `No code editor is active. Navigate to a method or property first.`
-- **`select_project_item` navigates to classes and folders, not individual methods** — the Xojo IDE scripting API (`SelectProjectItem`) can navigate to top-level items and classes, but not to individual methods or properties within a class. To read or write code for a specific method, use `get_code` or `set_code` with the full dot-separated path — XMCP navigates automatically before reading/writing.
+- **`select_project_item` navigates to classes and folders, not individual methods or events** — the Xojo IDE scripting API (`SelectProjectItem`) can navigate to top-level items and classes, but not to individual methods, properties, or event implementations. `list_project_items` also does not list events. To read or write code for a specific method or event, use `get_code` or `set_code` with the full dot-separated path — XMCP navigates automatically before reading/writing.
 - **IPC socket timing after navigation** — the Xojo IDE briefly closes its IPC socket (~2–3 seconds) after certain navigation operations. XMCP handles this with automatic retries (up to 5 × 1 second), so tools work reliably, but sequential IDE calls may take a few seconds longer after navigation.
 - **Parallel tool calls are not supported** — the Xojo IDE accepts only one IPC connection at a time. MCP clients that send parallel tool calls (e.g. Claude Code in some modes) may see connection errors on concurrent requests. Sequential tool calls work reliably.
 
