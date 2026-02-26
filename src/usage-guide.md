@@ -103,6 +103,15 @@ When IDE tools cannot access an item, edit the source files directly on disk and
 
 ---
 
+## After `run_project` and `build_project` — always wait for user feedback
+
+- `build_project` reports compile errors immediately — you can fix and retry autonomously
+- `run_project` only confirms the app launched (or reports compile errors). It cannot see runtime behaviour, crashes, or what the user experiences in the running app
+- **After `run_project` succeeds: always stop and ask the user what happened** — do not assume success or continue without feedback
+- You can use `get_system_log` to read `System.DebugLog` output, but only after the user has had a chance to interact with the app
+
+---
+
 ## Tips for working effectively with XMCP
 
 - Call `get_project_info` early to understand the project structure and get the directory path
