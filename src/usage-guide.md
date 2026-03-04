@@ -105,6 +105,7 @@ When IDE tools cannot access an item, edit the source files directly on disk and
 
 ## After `run_project` and `build_project` — always wait for user feedback
 
+- **`build_project` may report success without actually producing a build** — always verify by checking that the `.app` exists on disk afterward. If no app is found, use this reliable build workflow instead: (1) call `revert_project` to reload any disk-edited files into the IDE, (2) call `run_ide_script` with `DoCommand "BuildApp"`, (3) verify the `.app` timestamp is recent.
 - `build_project` reports compile errors immediately — you can fix and retry autonomously
 - `run_project` only confirms the app launched (or reports compile errors). It cannot see runtime behaviour, crashes, or what the user experiences in the running app
 - **After `run_project` succeeds: always stop and ask the user what happened** — do not assume success or continue without feedback
