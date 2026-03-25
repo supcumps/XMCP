@@ -4,6 +4,20 @@ This file is automatically loaded as an MCP resource when you connect to XMCP. I
 
 ---
 
+## Prerequisites — before using any XMCP tools
+
+**XMCP cannot start Xojo IDE.** All tools communicate via a macOS domain socket (`/tmp/XojoIDE`) that Xojo IDE creates when it launches. If the IDE is not running, every tool call will fail with "IPC socket not found".
+
+**The user must:**
+
+1. Start Xojo IDE manually
+2. Open the project they want to work with (File > Open) — XMCP cannot open projects
+3. Wait a few seconds after launch before the IPC socket is ready — if tools fail immediately after IDE start, ask the user to wait and retry
+
+**Do not attempt any XMCP tool calls until the user confirms that Xojo IDE is open and the project is loaded.**
+
+---
+
 ## What XMCP can do
 
 XMCP gives you direct control over the Xojo IDE via 22 tools:
@@ -17,6 +31,50 @@ XMCP gives you direct control over the Xojo IDE via 22 tools:
 - **Documentation**: `search_docs`, `lookup_class`, `list_doc_topics`
 - **Debugging**: `get_debug_log`, `get_system_log`
 - **Cost estimation**: `estimate_request_cost` — call this proactively before broad or documentation-heavy tasks to check whether the approach is likely to be expensive, and to get suggestions for cheaper alternatives
+
+---
+
+## Starting work on a new project — recommended first steps
+
+When you connect to a new Xojo project via XMCP:
+
+1. Call `get_project_info` to confirm the IDE is connected and get the project directory path
+2. Check whether `App` already has an `UnhandledException` handler (see below)
+3. **If not, proactively offer to add it** — this is essential for diagnosing crashes in built apps
+
+---
+
+## Crash reporting — add UnhandledException to App
+
+In built apps, runtime exceptions are silent unless you add an `UnhandledException` handler. Without it, crashes produce no output visible to XMCP.
+
+Add this to `App.xojo_code` (before the `#tag ViewBehavior` section):
+
+```xojo
+#tag Event
+    Sub UnhandledException(error As RuntimeException)
+      Var msg As String = "Error: " + error.Message + EndOfLine
+      msg = msg + "Error Number: " + Str(error.ErrorNumber) + EndOfLine
+      If error.Stack <> Nil Then
+        msg = msg + "Stack:" + EndOfLine
+        For Each frame As String In error.Stack
+          msg = msg + "  " + frame + EndOfLine
+        Next
+      End If
+
+      Var f As New FolderItem("/tmp/xmcp_debug.log")
+      Var stream As TextOutputStream = TextOutputStream.Open(f)
+      stream.Write(msg)
+      stream.Close
+    End Sub
+#tag EndEvent
+```
+
+After adding, ask the user for permission to call `revert_project` to reload the project.
+
+Once in place, use `get_debug_log` after a crash in a built app to retrieve the full exception message and stack trace.
+
+**Note:** `UnhandledException` does NOT fire in debug mode — the Xojo debugger intercepts exceptions first and shows them in the IDE.
 
 ---
 
@@ -89,7 +147,7 @@ When IDE tools cannot access an item, edit the source files directly on disk and
    ```
 
 4. **Reload in the IDE**
-   Call `revert_project` to reload all changed files from disk into the IDE. The user may see a confirmation prompt in the IDE — they need to accept it for the reload to complete.
+   Ask the user for permission, then call `revert_project` to reload all changed files from disk into the IDE. The user may see a confirmation prompt in the IDE — they need to accept it for the reload to complete.
 
 ### When to use direct file editing
 
@@ -103,13 +161,50 @@ When IDE tools cannot access an item, edit the source files directly on disk and
 
 ---
 
-## After `run_project` and `build_project` — always wait for user feedback
+## Running and building — rules and workflow
 
-- **`build_project` may report success without actually producing a build** — always verify by checking that the `.app` exists on disk afterward. If no app is found, use this reliable build workflow instead: (1) call `revert_project` to reload any disk-edited files into the IDE, (2) call `run_ide_script` with `DoCommand "BuildApp"`, (3) verify the `.app` timestamp is recent.
-- `build_project` reports compile errors immediately — you can fix and retry autonomously
-- `run_project` only confirms the app launched (or reports compile errors). It cannot see runtime behaviour, crashes, or what the user experiences in the running app
-- **After `run_project` succeeds: always stop and ask the user what happened** — do not assume success or continue without feedback
-- You can use `get_system_log` to read `System.DebugLog` output, but only after the user has had a chance to interact with the app
+### Never act without explicit user request
+
+- **Never call `build_project` unless the user explicitly asks you to build**
+- **Never call `run_project` unless the user explicitly asks you to run**
+- **Never call `revert_project` without asking the user first** — it discards all unsaved changes in the IDE
+
+Always wait for the user's answer before proceeding. Asking a question and then acting anyway defeats the purpose.
+
+### Recommended workflow when the user asks to build
+
+1. **Offer to run first**: Before building, offer to call `run_project` to catch syntax and runtime errors. Build does not catch all errors that run will catch.
+2. **Run and ask for feedback**: After `run_project` returns, always ask the user if they see any errors or exceptions in the IDE — XMCP cannot see runtime behaviour in debug mode.
+3. **Only build if run succeeds** — or if the user explicitly wants to build anyway.
+
+### What run_project and build_project can and cannot see
+
+| | `run_project` | `build_project` |
+| --- | --- | --- |
+| Syntax errors | ✓ Returns error | ✓ Returns error |
+| Runtime exceptions (debug mode) | ✗ Invisible — IDE debugger catches them | — |
+| Runtime exceptions (built app) | — | ✗ Invisible without `UnhandledException` |
+| Build output on disk | — | ✓ Verify `.app` exists after build |
+
+**After `run_project` returns "Project launched in debug mode"**: always ask the user if the app is behaving correctly and if they see any exceptions in the IDE debugger.
+
+### build_project reliability
+
+`build_project` may report "Build succeeded" without actually producing a build output. After a reported success, verify the `.app` exists on disk.
+
+If no build output is found, use this reliable fallback:
+
+1. Call `revert_project` (with user permission) to ensure the IDE has the latest files
+2. Call `run_ide_script` with `DoCommand "BuildApp"`
+3. Verify the `.app` exists on disk afterward
+
+### Debug mode vs. built app — exception visibility
+
+| Scenario | Exceptions visible to XMCP? | Where to look |
+| --- | --- | --- |
+| `run_project` (debug mode) | No | User sees them in Xojo IDE debugger |
+| Built app with `UnhandledException` | Yes — via `get_debug_log` | `/tmp/xmcp_debug.log` |
+| Built app without `UnhandledException` | No | Nowhere — add the handler |
 
 ---
 
@@ -119,8 +214,6 @@ When IDE tools cannot access an item, edit the source files directly on disk and
 - Use `list_project_items` to explore the project tree before navigating
 - Use `run_ide_script` to run arbitrary IDE scripting commands when no dedicated tool exists
 - Use `get_system_log` to retrieve `System.DebugLog` output — works for both debug builds (`AppName.debug`) and built apps (`AppName`)
-- The Xojo debugger intercepts unhandled exceptions in debug builds — `UnhandledException` is not called; exceptions are shown in the IDE debugger instead
-- For built apps, add an `App.UnhandledException` handler that writes to `/tmp/xmcp_debug.log`, then use `get_debug_log` after a crash to retrieve the full exception message and stack trace
 
 ---
 

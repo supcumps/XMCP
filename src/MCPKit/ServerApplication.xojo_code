@@ -27,8 +27,10 @@ Inherits ConsoleApplication
 		  
 		  While True
 		    Try
+		      // Check for EOF before blocking on Input, to exit cleanly when stdin is closed.
+		      If StdIn.EndOfFile Then Exit
 		      // Read from stdin and ignore blank lines.
-		      Var inputLine As String = Input
+		      Var inputLine As String = StdIn.ReadLine
 		      If StdIn.EndOfFile Then Exit  // stdin was closed - terminate gracefully.
 		      If inputLine = "" Then Continue
 		      
