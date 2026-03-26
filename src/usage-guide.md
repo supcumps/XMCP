@@ -78,86 +78,73 @@ Once in place, use `get_debug_log` after a crash in a built app to retrieve the 
 
 ---
 
-## Known limitations of the IDE scripting API
+## How to edit code — choose the right path first
 
-### 1. Cannot navigate to method-level items or events with `select_project_item`
+Pick your approach based on what you're editing. Going down the wrong path always causes a break.
 
-The Xojo IDE scripting API (`SelectProjectItem`) can navigate to top-level items, classes, modules, and windows — but **not** to individual methods, properties, or event implementations within them.
+| What you're editing | How to do it |
+| --- | --- |
+| Class / module / app-level code (`.xojo_code`) | `get_code` / `set_code` with dot-separated path |
+| Window event handlers (`Opening`, `Close`, `Resized`, etc.) | Edit `.xojo_window` file directly on disk |
+| Window layout, controls, or properties | Edit `.xojo_window` file directly on disk |
 
-`list_project_items` also does not list events — only methods, properties, and constants appear as children.
-
-**Symptom**: `select_project_item` returns `ERROR: Could not select 'Window1.Button1.Pressed'. The IDE scripting API cannot navigate to method-level items...`
-
-**Solution**: Use `get_code` or `set_code` with the full dot-separated path. These tools navigate automatically before reading or writing.
-
-```
-get_code(location: "Window1.Button1.Pressed")      ✓
-get_code(location: "App.UnhandledException")       ✓
-set_code(code: "...", location: "App.MyMethod")    ✓
-select_project_item(item_path: "App.UnhandledException") ✗
-list_project_items(location: "App")  → events not listed  ✗
-```
-
-### 2. Window event handlers cannot be accessed via IDE tools
-
-Window event handlers (e.g. `Window1.Opening`, `Window1.Close`, `Window1.Resized`) live in `.xojo_window` files and cannot be read or written through the IDE scripting API.
-
-**Symptom**: `get_code` or `set_code` returns `ERROR: Could not navigate to: Window1.Opening`
-
-**Solution**: Edit the `.xojo_window` file directly on disk (see fallback workflow below).
-
-### 3. Parallel tool calls are not supported
-
-The Xojo IDE accepts only one IPC connection at a time. If the MCP client sends parallel tool calls, some will fail with connection errors.
-
-**Solution**: Always use sequential tool calls when working with XMCP.
-
-### 4. IPC socket timing after navigation
-
-After certain navigation operations, the Xojo IDE briefly closes its IPC socket (~2–3 seconds). XMCP retries automatically (up to 5 × 1 second), so most calls recover. If a tool times out immediately after navigation, retry once.
+**For window files: go straight to direct file editing — do not try IDE tools first.**
 
 ---
 
-## Fallback: direct file editing
-
-When IDE tools cannot access an item, edit the source files directly on disk and reload the project.
-
-### Step-by-step
+## Direct file editing — how to do it
 
 1. **Find the project directory**
-   Call `get_project_info` — it returns a `Project Directory:` line with the full path to the folder containing all source files.
+   Call `get_project_info` — it returns a `Project Directory:` line with the full path.
 
 2. **Find the right file**
-   - Each class, module, or app-level code is one `.xojo_code` file (named after the class)
-   - Window UI and event handlers are in `.xojo_window` files (one per window)
-   - The project manifest is `<ProjectName>.xojo_project` (XML — edit sparingly)
+   - Classes, modules, app-level code → `<ClassName>.xojo_code`
+   - Window UI, controls, and event handlers → `<WindowName>.xojo_window`
+   - Project manifest → `<ProjectName>.xojo_project` (XML — edit sparingly)
 
-3. **Edit the file directly**
-   Use standard file read/write tools. The `.xojo_code` format is plain text with `#tag` markers. Follow the existing structure exactly.
+3. **Edit the file**
+   `.xojo_code` and `.xojo_window` are plain text with `#tag` markers. Follow the existing structure exactly.
 
-   Window event handlers (Opening, Close, Resized, etc.) go in `#tag WindowCode` using `#tag Event` tags:
-   ```
+   Window event handlers go in `#tag WindowCode`:
+
+   ```xojo
    #tag WindowCode
-   	#tag Event
-   		Sub Opening()
-   		  ' your code here
-   		End Sub
-   	#tag EndEvent
+       #tag Event
+           Sub Opening()
+             ' your code here
+           End Sub
+       #tag EndEvent
    #tag EndWindowCode
    ```
 
 4. **Reload in the IDE**
-   Ask the user for permission, then call `revert_project` to reload all changed files from disk into the IDE. The user may see a confirmation prompt in the IDE — they need to accept it for the reload to complete.
+   Ask the user for permission, then call `revert_project`. The user may see a confirmation prompt in the IDE — they need to accept it.
 
-### When to use direct file editing
+---
 
-| Situation | Use direct editing? |
-|-----------|-------------------|
-| Window event handler (Opening, Close, Resized, etc.) | Yes — always |
-| `select_project_item` fails for a method path | No — use `get_code`/`set_code` with path instead |
-| `get_code` fails with "No code editor is active" | Yes — item may not be a code item |
-| Adding a new method to an existing class | Either — IDE tools or direct editing both work |
-| Modifying window layout or controls | Yes — edit `.xojo_window` directly |
+## IDE tool limitations to be aware of
+
+### `select_project_item` cannot navigate to methods or events
+
+The IDE scripting API can navigate to top-level items, classes, modules, and windows — but not to individual methods, properties, or event implementations.
+
+Use `get_code` / `set_code` with a full dot-separated path instead — these navigate automatically:
+
+```text
+get_code(location: "Window1.Button1.Pressed")   ✓
+set_code(code: "...", location: "App.MyMethod") ✓
+select_project_item(item_path: "App.MyMethod")  ✗
+```
+
+`list_project_items` also does not list events — only methods, properties, and constants appear as children.
+
+### Parallel tool calls are not supported
+
+The Xojo IDE accepts only one IPC connection at a time. Always use sequential tool calls.
+
+### IPC socket timing after navigation
+
+After certain navigation operations, the IDE briefly closes its IPC socket (~2–3 seconds). XMCP retries automatically. If a tool times out immediately after navigation, retry once.
 
 ---
 
