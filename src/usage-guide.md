@@ -1,6 +1,6 @@
 # XMCP Usage Guide for AI Assistants
 
-This file is automatically loaded as an MCP resource when you connect to XMCP. It describes XMCP's capabilities, known limitations, and fallback strategies. You can edit this file to add project-specific notes or customise the guidance.
+This file is automatically loaded as an MCP resource when you connect to XMCP. It describes XMCP's capabilities, known limitations, and how to choose the right approach for each task. You can edit this file to add project-specific notes or customise the guidance.
 
 ---
 
