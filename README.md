@@ -278,9 +278,9 @@ Estimates expected token impact for a proposed request and optionally uses plann
 
 XMCP exposes one MCP resource that AI clients can fetch at session start:
 
-| URI | Name | Description |
-|-----|------|-------------|
-| `file://usage-guide.md` | XMCP Usage Guide | AI-facing guide: capabilities, known limitations, fallback strategies, and tips |
+| URI                     | Name             | Description                                                                                        |
+|-------------------------|------------------|----------------------------------------------------------------------------------------------------|
+| `file://usage-guide.md` | XMCP Usage Guide | AI-facing guide: capabilities, limitations, when to use IDE tools vs. direct file editing, and tips |
 
 The `usage-guide.md` file is distributed next to the XMCP binary. You can edit it to add project-specific notes or custom conventions without rebuilding. Compatible MCP clients (e.g. Claude Code) fetch it automatically via `resources/list` and `resources/read`.
 

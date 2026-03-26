@@ -125,7 +125,7 @@ Some items in a Xojo project cannot be accessed via the IDE scripting API. The w
 The file gives the AI immediate context about:
 - What XMCP can and cannot do
 - Known IDE scripting API limitations and their workarounds
-- The direct file editing fallback workflow
+- When to use IDE tools vs. direct file editing (window files always use direct editing)
 - Correct `.xojo_window` event handler format
 - Debug logging behavior (debug vs. built apps)
 
