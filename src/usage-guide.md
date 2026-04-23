@@ -72,9 +72,9 @@ Add this to `App.xojo_code` (before the `#tag ViewBehavior` section):
 
 After adding, ask the user for permission to call `revert_project` to reload the project.
 
-Once in place, use `get_debug_log` after a crash in a built app to retrieve the full exception message and stack trace.
+Once in place, use `get_debug_log` after a crash **in a built app** to retrieve the full exception message and stack trace. Without this handler, `get_debug_log` will always return empty — there is nothing to log.
 
-**Note:** `UnhandledException` does NOT fire in debug mode — the Xojo debugger intercepts exceptions first and shows them in the IDE.
+**`UnhandledException` does NOT fire in debug mode.** The Xojo debugger intercepts all exceptions before they reach this handler — they appear in the IDE debugger instead. `get_debug_log` will always be empty after a debug session crash. This handler is only useful in built apps.
 
 ---
 
@@ -89,6 +89,8 @@ Pick your approach based on what you're editing. Going down the wrong path alway
 | Window layout, controls, or properties | Edit `.xojo_window` file directly on disk |
 
 **For window files: go straight to direct file editing — do not try IDE tools first.**
+
+**Never call `get_code` or `set_code` on window event handlers** (`Opening`, `Close`, `Resized`, `KeyDown`, etc.). These items do not exist in the IDE scripting API and the call will always fail. Go directly to editing the `.xojo_window` file on disk.
 
 ---
 
