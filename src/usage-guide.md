@@ -179,13 +179,7 @@ Always wait for the user's answer before proceeding. Asking a question and then 
 
 ### build_project reliability
 
-`build_project` may report "Build succeeded" without actually producing a build output. After a reported success, verify the `.app` exists on disk.
-
-If no build output is found, use this reliable fallback:
-
-1. Call `revert_project` (with user permission) to ensure the IDE has the latest files
-2. Call `run_ide_script` with `DoCommand "BuildApp"`
-3. Verify the `.app` exists on disk afterward
+**`build_project` always reports "Build succeeded" — even when the build failed.** Always ask the user after every build: "Did the build succeed? Can you see the app in the expected location?" Never assume success based on the tool response.
 
 ### Debug mode vs. built app — exception visibility
 
