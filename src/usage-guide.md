@@ -78,19 +78,11 @@ Once in place, use `get_debug_log` after a crash **in a built app** to retrieve 
 
 ---
 
-## How to edit code — choose the right path first
+## How to edit code
 
-Pick your approach based on what you're editing. Going down the wrong path always causes a break.
+**Always edit source files directly on disk** — for both `.xojo_code` and `.xojo_window` files. Do not use `get_code` or `set_code` to write code.
 
-| What you're editing | How to do it |
-| --- | --- |
-| Class / module / app-level code (`.xojo_code`) | `get_code` / `set_code` with dot-separated path |
-| Window event handlers (`Opening`, `Close`, `Resized`, etc.) | Edit `.xojo_window` file directly on disk |
-| Window layout, controls, or properties | Edit `.xojo_window` file directly on disk |
-
-**For window files: go straight to direct file editing — do not try IDE tools first.**
-
-**Never call `get_code` or `set_code` on window event handlers** (`Opening`, `Close`, `Resized`, `KeyDown`, etc.). These items do not exist in the IDE scripting API and the call will always fail. Go directly to editing the `.xojo_window` file on disk.
+The only exception is when the user explicitly asks you to read or edit code they have selected in the IDE. In that case, `get_code` and `set_code` without a location parameter work reliably. After writing with `set_code`, always remind the user to save the project (Cmd+S) — `set_code` writes to the IDE editor but does not save to disk.
 
 ---
 
@@ -102,7 +94,7 @@ Pick your approach based on what you're editing. Going down the wrong path alway
 2. **Find the right file**
    - Classes, modules, app-level code → `<ClassName>.xojo_code`
    - Window UI, controls, and event handlers → `<WindowName>.xojo_window`
-   - Project manifest → `<ProjectName>.xojo_project` (XML — edit sparingly)
+   - Project manifest → `<ProjectName>.xojo_project` (key/value text format — edit sparingly)
 
 3. **Edit the file**
    `.xojo_code` and `.xojo_window` are plain text with `#tag` markers. Follow the existing structure exactly.
