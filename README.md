@@ -139,7 +139,7 @@ Replaces the currently selected text in the code editor with new text.
 
 #### `build_project`
 
-Builds the current Xojo project. Returns the path to the built application on success, or build errors on failure. Uses a 120-second timeout for long builds.
+Builds the current Xojo project. Uses a 120-second timeout for long builds. **Note:** always reports "Build succeeded" regardless of whether the build actually succeeded — always ask the user to confirm the result.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
