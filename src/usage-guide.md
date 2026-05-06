@@ -152,7 +152,7 @@ Always wait for the user's answer before proceeding. Asking a question and then 
 
 ### Recommended workflow when the user asks to build
 
-1. **Offer to run first**: Before building, offer to call `run_project` to catch syntax and runtime errors. Build does not catch all errors that run will catch.
+1. **Offer to run first**: Before building, offer to call `run_project` to catch syntax errors. **Note:** Runtime errors will only be visible to the user in the Xojo IDE debugger — not to XMCP.
 2. **Run and ask for feedback**: After `run_project` returns, always ask the user if they see any errors or exceptions in the IDE — XMCP cannot see runtime behaviour in debug mode.
 3. **Only build if run succeeds** — or if the user explicitly wants to build anyway.
 
