@@ -120,15 +120,7 @@ The only exception is when the user explicitly asks you to read or edit code the
 
 ### `select_project_item` cannot navigate to methods or events
 
-The IDE scripting API can navigate to top-level items, classes, modules, and windows — but not to individual methods, properties, or event implementations.
-
-Use `get_code` / `set_code` with a full dot-separated path instead — these navigate automatically:
-
-```text
-get_code(location: "Window1.Button1.Pressed")   ✓
-set_code(code: "...", location: "App.MyMethod") ✓
-select_project_item(item_path: "App.MyMethod")  ✗
-```
+The IDE scripting API can navigate to top-level items, classes, modules, and windows — but not to individual methods, properties, or event implementations. Edit the source file directly on disk instead.
 
 `list_project_items` also does not list events — only methods, properties, and constants appear as children.
 
