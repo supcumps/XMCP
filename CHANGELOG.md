@@ -4,6 +4,18 @@ All notable changes to XMCP will be documented here.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-05-06
+
+### Changed
+- `usage-guide.md`: direct file editing is now the primary approach for all code changes — not a fallback. `get_code`/`set_code` with dot-separated paths are unreliable and the guide no longer recommends them for writing code
+- `usage-guide.md`: `get_code`/`set_code` without a location parameter work reliably when the user has already selected code in the IDE — after `set_code`, the AI now reminds the user to save (Cmd+S)
+- `usage-guide.md`: `build_project` always reports "Build succeeded" regardless of outcome — AI now always asks the user to confirm the build succeeded
+- `usage-guide.md`: `get_debug_log` is only useful in built apps — the Xojo debugger intercepts all exceptions in debug mode, so the log will always be empty after a debug session crash
+- `usage-guide.md`: `list_doc_topics` should not be used for lookups — use `search_docs` instead to avoid wasting tokens on the full 143,000-character index
+- `usage-guide.md`: runtime exceptions in debug mode are visible to the user in the IDE debugger but not to XMCP
+- `select_project_item`: error message no longer suggests using `get_code`/`set_code` with dot-path as an alternative
+- CLAUDE.md/README.md: corrected incorrect claim that `.xojo_project` is XML (it is key/value text format)
+
 ## [1.2.0] - 2026-02-24
 
 ### Added
