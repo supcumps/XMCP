@@ -96,17 +96,17 @@ The IDE script language is the Xojo IDE Scripting language (not Xojo itself). Sc
 - **macOS only** — socket paths, documentation paths, and the Xojo IDE are macOS-specific.
 - **Xojo IDE must be open** with a project loaded for IDE tools to work.
 - To test changes, rebuild with Xojo IDE, then restart the MCP client session.
-- Source files are `.xojo_code` (plain text, one class/module per file) and `.xojo_project` (XML project manifest). These can be edited as plain text or through the IDE.
+- Source files are `.xojo_code` (plain text, one class/module per file) and `.xojo_project` (key/value text format project manifest). These can be edited as plain text or through the IDE.
 - Verbose logging to stderr can be enabled with the `-v/--verbose` CLI flag.
 - Documentation is auto-detected from versioned paths; the `--docs-path` flag overrides this.
 
-## Direct File Editing Fallback (for development and testing)
+## Direct File Editing (primary approach)
 
-Some items in a Xojo project cannot be accessed via the IDE scripting API. The workaround is to edit source files directly on disk and use `revert_project` to reload.
+Edit source files directly on disk and use `revert_project` to reload. This is the primary way to edit Xojo project code — not a fallback.
 
-**When this is needed:**
+**Always edit directly on disk for:**
+- All `.xojo_code` files (classes, modules, app-level code)
 - Window event handlers (`Window1.Opening`, `Window1.Close`, etc.) — these live in `.xojo_window` files and are invisible to IDE scripting
-- Any situation where `get_code`/`set_code` returns "No code editor is active" for a known-valid item
 
 **Workflow:**
 1. Edit the `.xojo_code` or `.xojo_window` file directly as plain text
@@ -115,7 +115,7 @@ Some items in a Xojo project cannot be accessed via the IDE scripting API. The w
 **File structure reference:**
 - `src/<ClassName>.xojo_code` — class, module, or app-level code
 - `src/<WindowName>.xojo_window` — window UI, controls, and event handlers
-- `src/XMCP.xojo_project` — project manifest (XML)
+- `src/XMCP.xojo_project` — project manifest (key/value text format)
 - `src/usage-guide.md` — the MCP resource distributed next to the binary
 
 ## usage-guide.md

@@ -106,7 +106,7 @@ Navigates to a specific item in the Xojo IDE Navigator using a dot-separated pat
 
 #### `get_code`
 
-Reads the source code at the current or specified location.
+Reads the source code at the current location in the IDE editor. The `location` parameter is unreliable — omit it and use the IDE's current selection instead.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -114,7 +114,7 @@ Reads the source code at the current or specified location.
 
 #### `set_code`
 
-Writes source code to the current or specified location. Replaces the entire code content at that location.
+Writes source code to the current location in the IDE editor. Replaces the entire code content at that location. The `location` parameter is unreliable — omit it and use the IDE's current selection instead. Does not save to disk; the user must save manually (Cmd+S).
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
