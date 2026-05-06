@@ -246,7 +246,7 @@ These tools help diagnose runtime errors in Xojo apps by reading exception logs 
 
 #### `get_debug_log`
 
-Reads crash and exception info from `/tmp/xmcp_debug.log`. This file is written by `App.UnhandledException` handlers in Xojo apps that use the XMCP debug pattern. Call this after a crash or unexpected termination to retrieve exception details.
+Reads crash and exception info from `/tmp/xmcp_debug.log`. This file is written by `App.UnhandledException` handlers in Xojo apps that use the XMCP debug pattern. Call this after a crash or unexpected termination to retrieve exception details. The log is not cleared automatically and may contain data from a previous crash — use `clear: true` after reading to ensure the next crash produces a fresh log.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
