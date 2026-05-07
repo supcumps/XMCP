@@ -4,6 +4,11 @@ All notable changes to XMCP will be documented here.
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-05-06
+
+### Added
+- `examples/` folder next to `usage-guide.md` with reference implementations of common Xojo file structures: `App.xojo_code`, `Module1.xojo_code`, `MyClass.xojo_code`, `MyButton.xojo_code`, `Window1.xojo_window` — gives the AI concrete templates to copy from when creating or editing project files
+
 ## [1.3.0] - 2026-05-06
 
 ### Changed
