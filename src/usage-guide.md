@@ -90,6 +90,8 @@ The only exception is when the user explicitly asks you to read or edit code the
 
 ## Direct file editing — how to do it
 
+Reference examples of all common file structures are in the `examples/` folder next to this file. Use them as templates when creating or editing `.xojo_code` and `.xojo_window` files.
+
 1. **Find the project directory**
    Call `get_project_info` — it returns a `Project Directory:` line with the full path.
 
