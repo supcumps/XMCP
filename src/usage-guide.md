@@ -103,7 +103,7 @@ Reference examples of all common file structures are in the `examples/` folder n
 3. **Edit the file**
    `.xojo_code` and `.xojo_window` are plain text with `#tag` markers. Follow the existing structure exactly.
 
-   Window event handlers go in `#tag WindowCode`:
+   Window-level event handlers go in `#tag WindowCode`:
 
    ```xojo
    #tag WindowCode
@@ -115,12 +115,30 @@ Reference examples of all common file structures are in the `examples/` folder n
    #tag EndWindowCode
    ```
 
+   Control event handlers (e.g. a `DesktopButton`'s `Pressed` event) go in a `#tag Events ControlName` block *after* `#tag EndWindowCode`:
+
+   ```xojo
+   #tag Events Button1
+       #tag Event
+           Sub Pressed()
+             MessageBox("Hi")
+           End Sub
+       #tag EndEvent
+   #tag EndEvents
+   ```
+
 4. **Reload in the IDE**
    Ask the user for permission, then call `revert_project`. The user may see a confirmation prompt in the IDE — they need to accept it.
 
 ---
 
 ## IDE tool limitations to be aware of
+
+### Never use `DoCommand "Insert..."` to add controls to windows
+
+Using `DoCommand "Insert..."` commands (e.g. `DoCommand "InsertDesktopButton"`) to add UI controls to a window **disconnects the Xojo IDE's IPC socket**, making all subsequent XMCP tool calls fail until the IDE is restarted.
+
+Always add controls by editing the `.xojo_window` file directly on disk instead. Use `examples/Window1.xojo_window` as a reference for the correct control block format and event handler structure.
 
 ### `select_project_item` cannot navigate to methods or events
 
@@ -133,6 +151,12 @@ The IDE scripting API can navigate to top-level items, classes, modules, and win
 - `search_docs` — search guides and tutorials by keyword. Use this first.
 - `lookup_class` — look up a specific class or method in the API reference.
 - `list_doc_topics` — returns the full documentation index (143,000+ characters). **Never call this to find information** — it wastes tokens and requires multiple slow read passes. Use `search_docs` instead. Only call `list_doc_topics` if the user explicitly asks for a topic overview.
+
+### IDE scripting quirks (run_ide_script)
+
+- `SelectProjectItem` returns a Boolean — always capture the return value: `Dim r As Boolean = SelectProjectItem("Window1")`
+- `GetProjectItem` does not exist in the IDE scripting language — using it causes a compile error
+- Avoid declaring variables as `ProjectItem` — it is a method name in the scripting language, not a type
 
 ### Parallel tool calls are not supported
 
