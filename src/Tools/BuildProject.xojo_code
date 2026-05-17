@@ -3,37 +3,20 @@ Protected Class BuildProject
 Inherits MCPKit.Tool
 	#tag Method, Flags = &h0
 		Sub Constructor()
-		  Super.Constructor("build_project", "Builds the current Xojo project. Returns the path to the built application on success, or build errors on failure.")
-
-		  Parameters.Add(New MCPKit.ToolParameter("build_type", MCPKit.ToolParameterTypes.Integer_, _
-		  "Build type: 0=Default, 5=macOS (Cocoa), 9=Windows 32-bit, 14=Windows 64-bit, 16=Linux 32-bit, 17=Linux 64-bit, 18=Linux ARM, 24=macOS Universal. Default is 0.", _
-		  True, 0, False))
-
-		  Parameters.Add(New MCPKit.ToolParameter("reveal", MCPKit.ToolParameterTypes.Boolean_, _
-		  "Whether to reveal the built app in Finder/Explorer after building. Default is false.", _
-		  True, False, False))
+		  Super.Constructor("build_project", "Builds the current Xojo project using the IDE's configured Build Settings. Returns build errors on failure, or a success message on success.")
 
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function Run(args() As MCPKit.ToolArgument) As MCPKit.ToolResult
-		  Var buildType As Integer = 0
-		  Var reveal As Boolean = False
-		  For Each arg As MCPKit.ToolArgument In args
-		    If arg.Name = "build_type" Then
-		      buildType = arg.Value.IntegerValue
-		    ElseIf arg.Name = "reveal" Then
-		      reveal = arg.Value.BooleanValue
-		    End If
-		  Next arg
+		  #Pragma Unused args
 
-		  // DoCommand "BuildApp" returns a buildError JSON object on failure,
-		  // or {} on success. The IDE returns it directly as the response value —
-		  // not via Print — so we just call DoCommand and let the response come back.
-		  Var revealStr As String = If(reveal, "True", "False")
-		  Var script As String = _
-		  "DoCommand ""BuildApp " + buildType.ToString + " " + revealStr + """" + EndOfLine + _
+		  // DoCommand "BuildApp" uses the IDE's configured Build Settings
+		  // (BuildMac, BuildWin32, etc.) chosen by the user in the IDE.
+		  // On failure it returns a buildError JSON object directly as the
+		  // response value (not via Print); on success it returns {}.
+		  Var script As String = "DoCommand ""BuildApp""" + EndOfLine + _
 		  "Print """""
 
 		  // Builds can take a long time — use a 120 second timeout.

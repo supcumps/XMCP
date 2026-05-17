@@ -4,6 +4,14 @@ All notable changes to XMCP will be documented here.
 
 ## [Unreleased]
 
+### Fixed
+- `build_project` no longer silently fails. Previously it sent `DoCommand "BuildApp <buildType> <reveal>"`, which is an invalid combination of the no-argument `DoCommand "BuildApp"` form and the `BuildApp(buildType, reveal)` function form — the IDE ignored the trailing tokens, returned `{}` without building, and the tool reported "Build succeeded" while no `.app` was produced. The tool now uses `DoCommand "BuildApp"` and respects the IDE's configured Build Settings. Reported on the Xojo forum.
+
+### Changed
+- `build_project` no longer takes `build_type` or `reveal` parameters. Build targets are now controlled via the IDE's Build Settings (`BuildMac`, `BuildWin32`, etc.) selected in the IDE.
+- `usage-guide.md`: removed the "always reports Build succeeded" warning — `build_project` now reports real outcomes
+- CLAUDE.md: documented the distinction between `DoCommand "BuildApp"` (no-argument, uses Build Settings) and the `BuildApp(buildType, reveal)` function form, with correct buildType values
+
 ## [1.3.1] - 2026-05-06
 
 ### Added

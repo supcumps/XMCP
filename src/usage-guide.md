@@ -197,9 +197,9 @@ Always wait for the user's answer before proceeding. Asking a question and then 
 
 **Note:** `run_project` catches syntax errors. Runtime exceptions are visible to the user in the Xojo IDE debugger — but not to XMCP.
 
-### build_project reliability
+### build_project uses the IDE's Build Settings
 
-**`build_project` always reports "Build succeeded" — even when the build failed.** Always ask the user after every build: "Did the build succeed? Can you see the app in the expected location?" Never assume success based on the tool response.
+`build_project` takes no parameters — it builds using whatever target platforms the user has configured in the IDE's Build Settings (`BuildMac`, `BuildWin32`, etc.). On success it returns "Build succeeded."; on failure it returns the list of build errors. The success message does not include a path, so to confirm the build location, check the project's `Builds - <ProjectName>/` directory.
 
 ### Debug mode vs. built app — exception visibility
 

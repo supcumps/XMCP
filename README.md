@@ -139,12 +139,9 @@ Replaces the currently selected text in the code editor with new text.
 
 #### `build_project`
 
-Builds the current Xojo project. Uses a 120-second timeout for long builds. **Note:** always reports "Build succeeded" regardless of whether the build actually succeeded — always ask the user to confirm the result.
+Builds the current Xojo project using the IDE's configured Build Settings (the target platforms selected in the IDE). Uses a 120-second timeout for long builds. Returns "Build succeeded." on success, or a formatted list of build errors on failure.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `build_type` | Integer | No | `0` Default, `5` macOS (Cocoa), `9` Windows 32-bit, `14` Windows 64-bit, `16` Linux 32-bit, `17` Linux 64-bit, `18` Linux ARM, `24` macOS Universal. Default: 0. |
-| `reveal` | Boolean | No | Reveal the built app in Finder after building. Default: false. |
+*No parameters.*
 
 #### `run_project`
 

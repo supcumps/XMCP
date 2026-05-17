@@ -87,9 +87,11 @@ And receives:
 
 The IDE script language is the Xojo IDE Scripting language (not Xojo itself). Scripts use `Print` to return values. Use `RunIDEScript` tool or `mcp__xmcp__run_ide_script` to experiment with scripts interactively.
 
-`DoCommand "RunApp"` and `DoCommand "BuildApp"` are special: they return a `buildError` JSON object directly as the response value (not via `Print`) on failure, or an empty `{}` on success. The `run_project` and `build_project` tools handle this by calling `DoCommand` followed by `Print ""`, then parsing the response value.
+`DoCommand "RunApp"` and `DoCommand "BuildApp"` are special: they return a `buildError` JSON object directly as the response value (not via `Print`) on failure, or `{}` on success. Both `run_project` and `build_project` call the no-argument `DoCommand` form followed by `Print ""`, then parse the response value. `DoCommand "BuildApp"` uses the IDE's configured Build Settings (`BuildMac`, `BuildWin32`, etc.).
 
-`DoCommand "BuildApp"` accepts build type and reveal flag as part of the command string, not as separate comma-separated arguments: `DoCommand "BuildApp 24 True"`. Comma-separated arguments cause a script compiler error.
+The `BuildApp(buildType, reveal)` function form exists for IDE scripts that need to build a specific target (returns the build path as a string). Valid `buildType` values: 3=Win32, 4=Linux32, 9=macOS Universal, 16=macOS, 17=Linux64, 18=LinuxARM32, 19=Win64, 24=macOSARM, 25=WinARM64, 26=LinuxARM64. Invalid values (e.g. 0) produce no build and return an empty string.
+
+**Do not** use `DoCommand "BuildApp 24 True"` — `DoCommand "BuildApp"` is the no-argument form and silently ignores trailing tokens.
 
 ## Development Notes
 
