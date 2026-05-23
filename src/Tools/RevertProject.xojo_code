@@ -3,28 +3,46 @@ Protected Class RevertProject
 Inherits MCPKit.Tool
 	#tag Method, Flags = &h0
 		Sub Constructor()
-		  Super.Constructor("revert_project", "Reverts the current Xojo project to the version saved on disk. Use this after modifying project files (e.g. .xojo_window, .xojo_code) directly on disk to reload them in the IDE.")
+		  Super.Constructor("revert_project", "Reloads the current Xojo project from disk so that on-disk edits to .xojo_code / .xojo_window / .xojo_project files are picked up by the IDE. By default, the IDE's in-memory project is saved to disk first so no in-IDE work is lost. Pass force=true to skip the save and discard any unsaved IDE edits.")
+
+		  Parameters.Add(New MCPKit.ToolParameter("force", MCPKit.ToolParameterTypes.Boolean_, _
+		  "If true, skip saving the IDE's in-memory project before reloading and discard any unsaved IDE edits. Default is false (save first, then reload — safe).", _
+		  True, False, False))
 
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function Run(args() As MCPKit.ToolArgument) As MCPKit.ToolResult
-		  #Pragma Unused args
-
-		  // First get the project path, then close and reopen it.
-		  // DoCommand("RevertFile") shows a confirmation dialog that blocks the script,
-		  // so we use CloseProject(False) + OpenFile instead.
-		  Var script As String = _
-		  "Dim path As String = ProjectShellPath" + EndOfLine + _
-		  "CloseProject(False)" + EndOfLine + _
-		  "OpenFile path" + EndOfLine + _
-		  "Print ""Project reloaded from disk."""
+		  Var force As Boolean = False
+		  For Each arg As MCPKit.ToolArgument In args
+		    If arg.Name = "force" Then force = arg.Value.BooleanValue
+		  Next
 
 		  If App.IDE = Nil Then
 		    Return MCPKit.ToolResult.Failure("Xojo IDE is not connected. Start the IDE and restart XMCP.")
 		  End If
-		  
+
+		  // DoCommand("RevertFile") shows a confirmation dialog that blocks the script,
+		  // so we close and reopen the project manually. When force=False (default), we
+		  // save the IDE's in-memory state first so no unsaved work is lost — the user's
+		  // edits are merged onto disk before we reload from disk.
+		  Var script As String
+		  If force Then
+		    script = _
+		    "Dim path As String = ProjectShellPath" + EndOfLine + _
+		    "CloseProject(False)" + EndOfLine + _
+		    "OpenFile path" + EndOfLine + _
+		    "Print ""Project reloaded from disk (force=true; any unsaved IDE edits discarded)."""
+		  Else
+		    script = _
+		    "Dim path As String = ProjectShellPath" + EndOfLine + _
+		    "DoCommand ""SaveProject""" + EndOfLine + _
+		    "CloseProject(False)" + EndOfLine + _
+		    "OpenFile path" + EndOfLine + _
+		    "Print ""Project saved and reloaded from disk."""
+		  End If
+
 		  Return App.IDE.RunScript(script, 15000)
 
 		End Function

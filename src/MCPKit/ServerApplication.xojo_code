@@ -123,7 +123,10 @@ Inherits ConsoleApplication
 		  
 		  // Create the result object.
 		  Var result As New JSONItem
-		  result.Value("protocolVersion") = request.Lookup("protocolVersion", PROTOCOL_VERSION)
+		  // Always assert the server's supported protocol version rather than
+		  // echoing the client's request. Echoing risks falsely claiming
+		  // compatibility with a version the server does not implement.
+		  result.Value("protocolVersion") = PROTOCOL_VERSION
 		  
 		  // Add capabilities.
 		  Var capabilities As New JSONItem
