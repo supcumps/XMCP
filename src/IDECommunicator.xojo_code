@@ -134,7 +134,7 @@ Protected Class IDECommunicator
 		      LogVerbose("IDE request " + tag + ": socket temporarily unavailable, retrying in " + kRetryPauseMS.ToString + "ms...")
 		      Var pauseDeadline As Double = System.Microseconds + (kRetryPauseMS * 1000.0)
 		      While System.Microseconds < pauseDeadline
-		        // Busy-wait to avoid blocking the event loop differently on console apps.
+		        App.SleepCurrentThread(10)
 		      Wend
 		    Else
 		      If socketErrors.Count > 0 Then
@@ -185,6 +185,7 @@ Protected Class IDECommunicator
 		  
 		  While Not sock.IsConnected And System.Microseconds < deadlineUS
 		    sock.Poll
+		    App.SleepCurrentThread(5)
 		  Wend
 		  
 		  If Not sock.IsConnected Then
@@ -207,9 +208,12 @@ Protected Class IDECommunicator
 		  
 		  While System.Microseconds < deadlineUS
 		    sock.Poll
-		    
+
 		    Var chunk As String = sock.ReadAll
-		    If chunk = "" Then Continue
+		    If chunk = "" Then
+		      App.SleepCurrentThread(5)
+		      Continue
+		    End If
 		    
 		    hadData = True
 		    buffer = buffer + chunk
