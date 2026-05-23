@@ -53,31 +53,7 @@ Inherits MCPKit.Tool
 		    "Print ItemDescription"
 		  End If
 
-		  Var response As JSONItem = App.IDE.SendAndReceive(script)
-		  If response = Nil Then
-		    If App.IDE.LastErrorMessage <> "" Then
-		      Return MCPKit.ToolResult.Failure(App.IDE.LastErrorMessage)
-		    End If
-		    Return MCPKit.ToolResult.Failure("Timeout waiting for IDE response.")
-		  End If
-
-		  If response.HasKey("response") Then
-		    Var resp As String
-		    Var respVar As Variant = response.Value("response")
-		    If respVar.Type = Variant.TypeString Then
-		      resp = respVar.StringValue
-		    Else
-		      Var respJSON As JSONItem = response.Value("response")
-		      resp = respJSON.ToString
-		    End If
-
-		    If resp.BeginsWith("ERROR:") Then
-		      Return MCPKit.ToolResult.Failure(resp)
-		    End If
-		    Return MCPKit.ToolResult.Success(resp)
-		  End If
-
-		  Return MCPKit.ToolResult.Failure("Unexpected response from IDE: " + response.ToString)
+		  Return App.IDE.RunScript(script)
 
 		End Function
 	#tag EndMethod

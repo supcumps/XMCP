@@ -154,6 +154,47 @@ Protected Class IDECommunicator
 		End Function
 	#tag EndMethod
 	
+	#tag Method, Flags = &h0
+		Function RunScript(script As String, timeoutMS As Integer = 10000) As MCPKit.ToolResult
+		  /// Sends an IDE script and converts the response into a ToolResult.
+		  /// Handles the common contract used by most tools:
+		  ///   - Nil response → Failure with LastErrorMessage (or timeout message)
+		  ///   - response.response as string starting with "ERROR:" → Failure
+		  ///   - response.response as string → Success(string)
+		  ///   - response.response as JSON object → Success(json.ToString)
+		  /// Tools that need to parse JSON results (e.g. DoCommand "RunApp") should
+		  /// keep calling SendAndReceive directly.
+
+		  Var response As JSONItem = SendAndReceive(script, timeoutMS)
+		  If response = Nil Then
+		    If LastErrorMessage <> "" Then
+		      Return MCPKit.ToolResult.Failure(LastErrorMessage)
+		    End If
+		    Return MCPKit.ToolResult.Failure("Timeout waiting for IDE response.")
+		  End If
+
+		  If Not response.HasKey("response") Then
+		    Return MCPKit.ToolResult.Failure("Unexpected response from IDE: " + response.ToString)
+		  End If
+
+		  Var resp As String
+		  Var respVar As Variant = response.Value("response")
+		  If respVar.Type = Variant.TypeString Then
+		    resp = respVar.StringValue
+		  Else
+		    Var respJSON As JSONItem = response.Value("response")
+		    resp = respJSON.ToString
+		  End If
+
+		  If resp.BeginsWith("ERROR:") Then
+		    Return MCPKit.ToolResult.Failure(resp)
+		  End If
+
+		  Return MCPKit.ToolResult.Success(resp)
+
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Sub LogVerbose(message As String)
 		  If App <> Nil And App.Verbose Then
