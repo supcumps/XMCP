@@ -253,12 +253,20 @@ Inherits ConsoleApplication
 		  Var tool As MCPKit.Tool = GetToolNamed(toolName)
 		  
 		  // Get the arguments to the tool. Per MCP spec, `arguments` may be omitted
-		  // for zero-arg tools — treat a missing key as an empty object.
+		  // for zero-arg tools — treat a missing key as an empty object. When
+		  // present it must be a JSON object (not null, array, or scalar).
 		  Var argumentsJSON As JSONItem
 		  If params.HasKey("arguments") Then
-		    argumentsJSON = params.Value("arguments")
-		    If argumentsJSON = Nil Then
-		      Var message As String = "The `arguments` value is not a valid object."
+		    Try
+		      argumentsJSON = params.Value("arguments")
+		    Catch e As RuntimeException
+		      Var message As String = "The `arguments` value must be a JSON object."
+		      MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
+		      If Verbose Then System.DebugLog(message)
+		      Return Nil
+		    End Try
+		    If argumentsJSON = Nil Or argumentsJSON.IsArray Then
+		      Var message As String = "The `arguments` value must be a JSON object."
 		      MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
 		      If Verbose Then System.DebugLog(message)
 		      Return Nil

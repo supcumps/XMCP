@@ -37,7 +37,7 @@ Inherits MCPKit.Tool
 		    Var content As String = tis.ReadAll
 		    tis.Close
 
-		    Const kMaxOutputChars = 102400 // ~100 KB ASCII; character-counted to keep UTF-8 valid
+		    Const kMaxOutputChars = 102400 // ~100 K characters; counted by character so UTF-8 is never split mid-codepoint
 
 		    If filter = "" Then
 		      If content.Length > kMaxOutputChars Then

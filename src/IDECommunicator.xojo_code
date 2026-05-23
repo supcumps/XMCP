@@ -161,7 +161,8 @@ Protected Class IDECommunicator
 		  ///   - Nil response → Failure with LastErrorMessage (or timeout message)
 		  ///   - response.response as string starting with "ERROR:" → Failure
 		  ///   - response.response as string → Success(string)
-		  ///   - response.response as JSON object → Success(json.ToString)
+		  ///   - response.response as JSON object with `scriptError` key → Failure
+		  ///   - response.response as any other JSON object → Success(json.ToString)
 		  /// Tools that need to parse JSON results (e.g. DoCommand "RunApp") should
 		  /// keep calling SendAndReceive directly.
 

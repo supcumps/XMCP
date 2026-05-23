@@ -41,7 +41,7 @@ Inherits MCPKit.Tool
 		  If seconds > 3600 Then seconds = 3600
 
 		  Const kShellTimeoutMS = 30000
-		  Const kMaxOutputChars = 262144 // ~256 KB ASCII; character-counted to keep UTF-8 valid
+		  Const kMaxOutputChars = 262144 // ~256 K characters; counted by character so UTF-8 is never split mid-codepoint
 
 		  Var sh As New Shell
 		  sh.TimeOut = kShellTimeoutMS
