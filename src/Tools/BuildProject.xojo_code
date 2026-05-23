@@ -36,14 +36,20 @@ Inherits MCPKit.Tool
 		    Var resp As Variant = response.Value("response")
 
 		    // DoCommand returns a JSON string we printed — parse it.
+		    // Happy path: we send `Print ""` after DoCommand "BuildApp",
+		    // so a successful build yields an empty string here (not JSON).
+		    // Anything else non-JSON is unexpected and should not be reported
+		    // as success without surfacing the raw text to the caller.
 		    If resp.Type = Variant.TypeString Then
 		      Var respStr As String = resp.StringValue
+		      If respStr.Trim = "" Then
+		        Return MCPKit.ToolResult.Success("Build succeeded.")
+		      End If
 		      Try
 		        Var resultJSON As New JSONItem(respStr)
 		        Return ParseDoCommandResult(resultJSON)
 		      Catch e As JSONException
-		        // Not JSON — treat as a plain success message.
-		        Return MCPKit.ToolResult.Success("Build succeeded: " + respStr)
+		        Return MCPKit.ToolResult.Failure("Unexpected non-JSON response from BuildApp: " + respStr)
 		      End Try
 		    Else
 		      // Already a JSON object in the response envelope.
