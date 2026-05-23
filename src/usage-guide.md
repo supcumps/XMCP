@@ -34,6 +34,20 @@ XMCP gives you direct control over the Xojo IDE via 22 tools:
 
 ---
 
+## Trust model — XMCP is a full-trust local bridge
+
+XMCP runs as a local process that drives a real Xojo IDE on the user's machine. It is **not** a sandbox. In particular:
+
+- **`run_ide_script` is an unrestricted escape hatch.** It executes arbitrary Xojo IDE scripting code with the IDE's full authority — read or write any file the IDE can reach, modify project code, build, run, install, or shell out via the IDE's scripting surface.
+- **`set_code`, `create_project_item`, `build_project`, `run_project`, `revert_project`** all mutate the user's project, run user-authored code, or discard work. None of them ask the IDE for confirmation.
+- **Direct file edits** to `.xojo_code` / `.xojo_window` / `.xojo_project` files happen at the filesystem layer with the user's normal write permissions.
+
+This is appropriate for the intended use case: a single trusted MCP client (Claude Code) on the developer's own workstation acting on their explicit instructions. It is **not** appropriate to expose XMCP to an untrusted client or a multi-tenant context — there is no privilege separation, no per-tool capability check, and no audit trail beyond `/tmp/xmcp_debug.log`.
+
+If you (the AI assistant) are about to take a destructive or hard-to-reverse action (build, run, revert, overwriting code, mass file edits), confirm with the user first, even when a tool will technically succeed without asking. The trust the user extends to XMCP is the trust they extend to you.
+
+---
+
 ## Starting work on a new project — recommended first steps
 
 When you connect to a new Xojo project via XMCP:
