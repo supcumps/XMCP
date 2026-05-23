@@ -40,9 +40,18 @@ Inherits MCPKit.Tool
 		  If seconds < 1 Then seconds = 60
 		  If seconds > 3600 Then seconds = 3600
 
+		  Const kShellTimeoutMS = 30000
+		  Const kMaxOutputBytes = 262144 // 256 KB cap on returned text
+
 		  Var sh As New Shell
+		  sh.TimeOut = kShellTimeoutMS
 		  sh.Execute("log show --last " + seconds.ToString + "s " + _
 		    "--predicate 'process == """ + processName + """' 2>/dev/null")
+
+		  If sh.ExitCode <> 0 Then
+		    Return MCPKit.ToolResult.Failure("`log show` failed (exit code " + sh.ExitCode.ToString + "). Verify that the macOS unified log is accessible and that the process name is correct.")
+		  End If
+
 		  Var output As String = sh.Result
 
 		  // Filter to only System.DebugLog messages.
@@ -57,7 +66,15 @@ Inherits MCPKit.Tool
 		    Return MCPKit.ToolResult.Success("No log entries found for process '" + processName + "' in the last " + seconds.ToString + " seconds.")
 		  End If
 
-		  Return MCPKit.ToolResult.Success(String.FromArray(result, Chr(10)))
+		  Var joined As String = String.FromArray(result, Chr(10))
+		  If joined.Bytes > kMaxOutputBytes Then
+		    Var keepBytes As Integer = kMaxOutputBytes
+		    Var truncated As String = joined.RightBytes(keepBytes)
+		    Var footer As String = Chr(10) + "[truncated to last " + keepBytes.ToString + " bytes of " + joined.Bytes.ToString + " — narrow the time window with the 'seconds' parameter or filter the process more strictly]"
+		    Return MCPKit.ToolResult.Success(truncated + footer)
+		  End If
+
+		  Return MCPKit.ToolResult.Success(joined)
 
 		End Function
 	#tag EndMethod

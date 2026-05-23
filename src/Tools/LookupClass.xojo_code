@@ -55,12 +55,21 @@ Inherits MCPKit.Tool
 		    Return MCPKit.ToolResult.Failure("No documentation found for class: " + className + ". Try using search_docs or list_doc_topics to find the correct name.")
 		  End If
 
+		  Const kMaxOutputBytes = 102400 // 100 KB cap on returned text
+
 		  // Read the RST file.
 		  Try
 		    Var tis As TextInputStream = TextInputStream.Open(foundFile)
 		    tis.Encoding = Encodings.UTF8
 		    Var content As String = tis.ReadAll
 		    tis.Close
+
+		    If content.Bytes > kMaxOutputBytes Then
+		      Var truncated As String = content.LeftBytes(kMaxOutputBytes)
+		      Var footer As String = EndOfLine + "[truncated to first " + kMaxOutputBytes.ToString + " bytes of " + content.Bytes.ToString + " — use search_docs to find specific topics within this class]"
+		      Return MCPKit.ToolResult.Success(truncated + footer)
+		    End If
+
 		    Return MCPKit.ToolResult.Success(content)
 		  Catch e As IOException
 		    Return MCPKit.ToolResult.Failure("Error reading documentation file: " + e.Message)
