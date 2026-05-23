@@ -183,6 +183,12 @@ Protected Class IDECommunicator
 		    resp = respVar.StringValue
 		  Else
 		    Var respJSON As JSONItem = response.Value("response")
+		    // The IDE returns structured failures as a JSON object with a
+		    // `scriptError` key (e.g. compile errors in the script we sent).
+		    // These must be surfaced as Failure, not stringified as Success.
+		    If respJSON.HasKey("scriptError") Then
+		      Return MCPKit.ToolResult.Failure("IDE script error: " + respJSON.ToString)
+		    End If
 		    resp = respJSON.ToString
 		  End If
 

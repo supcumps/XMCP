@@ -41,7 +41,7 @@ Inherits MCPKit.Tool
 		  If seconds > 3600 Then seconds = 3600
 
 		  Const kShellTimeoutMS = 30000
-		  Const kMaxOutputBytes = 262144 // 256 KB cap on returned text
+		  Const kMaxOutputChars = 262144 // ~256 KB ASCII; character-counted to keep UTF-8 valid
 
 		  Var sh As New Shell
 		  sh.TimeOut = kShellTimeoutMS
@@ -67,10 +67,9 @@ Inherits MCPKit.Tool
 		  End If
 
 		  Var joined As String = String.FromArray(result, Chr(10))
-		  If joined.Bytes > kMaxOutputBytes Then
-		    Var keepBytes As Integer = kMaxOutputBytes
-		    Var truncated As String = joined.RightBytes(keepBytes)
-		    Var footer As String = Chr(10) + "[truncated to last " + keepBytes.ToString + " bytes of " + joined.Bytes.ToString + " — narrow the time window with the 'seconds' parameter or filter the process more strictly]"
+		  If joined.Length > kMaxOutputChars Then
+		    Var truncated As String = joined.Right(kMaxOutputChars)
+		    Var footer As String = Chr(10) + "[truncated to last " + kMaxOutputChars.ToString + " of " + joined.Length.ToString + " characters — narrow the time window with the 'seconds' parameter or filter the process more strictly]"
 		    Return MCPKit.ToolResult.Success(truncated + footer)
 		  End If
 

@@ -203,10 +203,47 @@ Inherits ConsoleApplication
 		    If Verbose Then System.DebugLog(message)
 		    Return Nil
 		  End If
-		  Var params As JSONItem = request.Value("params")
-		  
-		  // Check this server has a tool with this name and get it if it does.
-		  Var toolName As String = params.Value("name")
+
+		  Var params As JSONItem
+		  Try
+		    params = request.Value("params")
+		  Catch e As RuntimeException
+		    Var message As String = "`params` must be a JSON object."
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
+		    If Verbose Then System.DebugLog(message)
+		    Return Nil
+		  End Try
+		  If params = Nil Or params.IsArray Then
+		    Var message As String = "`params` must be a JSON object."
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
+		    If Verbose Then System.DebugLog(message)
+		    Return Nil
+		  End If
+
+		  If Not params.HasKey("name") Then
+		    Var message As String = "Missing `name` key in tool call params."
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
+		    If Verbose Then System.DebugLog(message)
+		    Return Nil
+		  End If
+
+		  Var toolName As String
+		  Try
+		    Var nameVar As Variant = params.Value("name")
+		    If nameVar.Type <> Variant.TypeString Then
+		      Var message As String = "`name` must be a string."
+		      MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
+		      If Verbose Then System.DebugLog(message)
+		      Return Nil
+		    End If
+		    toolName = nameVar.StringValue
+		  Catch e As RuntimeException
+		    Var message As String = "Invalid `name` value in tool call params."
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
+		    If Verbose Then System.DebugLog(message)
+		    Return Nil
+		  End Try
+
 		  If Not HasToolWithName(toolName) Then
 		    Var message As String = "There is no tool named `" + toolName + "`."
 		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.MethodNotFound, message)

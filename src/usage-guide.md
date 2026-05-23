@@ -128,7 +128,7 @@ Reference examples of all common file structures are in the `examples/` folder n
    ```
 
 4. **Reload in the IDE**
-   Call `revert_project`. By default it saves the IDE's in-memory project to disk first, then reloads — so no unsaved IDE edits are lost. Pass `force: true` only if the user explicitly wants to discard unsaved IDE changes.
+   Ask the user for permission first, then call `revert_project`. The reload is destructive to any unsaved IDE-side edits — saving them first would overwrite the disk changes we just made, so the tool deliberately does not save.
 
 ---
 
@@ -174,7 +174,7 @@ After certain navigation operations, the IDE briefly closes its IPC socket (~2�
 
 - **Never call `build_project` unless the user explicitly asks you to build**
 - **Never call `run_project` unless the user explicitly asks you to run**
-- **`revert_project` is safe by default**: it saves the IDE's in-memory project to disk first, then reloads. Only pass `force: true` if the user explicitly asks to discard unsaved IDE changes.
+- **Never call `revert_project` without asking the user first** — it discards any unsaved IDE-side edits. (XMCP cannot save them first: that would overwrite the disk changes the reload is meant to ingest.)
 
 Always wait for the user's answer before proceeding. Asking a question and then acting anyway defeats the purpose.
 

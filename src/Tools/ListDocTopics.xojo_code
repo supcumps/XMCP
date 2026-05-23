@@ -37,12 +37,12 @@ Inherits MCPKit.Tool
 		    Var content As String = tis.ReadAll
 		    tis.Close
 
-		    Const kMaxOutputBytes = 102400 // 100 KB cap on returned text
+		    Const kMaxOutputChars = 102400 // ~100 KB ASCII; character-counted to keep UTF-8 valid
 
 		    If filter = "" Then
-		      If content.Bytes > kMaxOutputBytes Then
-		        Var truncated As String = content.LeftBytes(kMaxOutputBytes)
-		        Var footer As String = EndOfLine + "[truncated to first " + kMaxOutputBytes.ToString + " bytes of " + content.Bytes.ToString + " — pass a 'filter' keyword to narrow results]"
+		      If content.Length > kMaxOutputChars Then
+		        Var truncated As String = content.Left(kMaxOutputChars)
+		        Var footer As String = EndOfLine + "[truncated to first " + kMaxOutputChars.ToString + " of " + content.Length.ToString + " characters — pass a 'filter' keyword to narrow results]"
 		        Return MCPKit.ToolResult.Success(truncated + footer)
 		      End If
 		      Return MCPKit.ToolResult.Success(content)
