@@ -7,7 +7,7 @@ Inherits MCPKit.Tool
 
 		  Parameters.Add(New MCPKit.ToolParameter("name", MCPKit.ToolParameterTypes.String_, _
 		  "The constant name. Can be a simple name (e.g. 'kVersion') or fully qualified (e.g. 'App.kVersion').", _
-		  False, "", False))
+		  False, "", True))
 
 		  Parameters.Add(New MCPKit.ToolParameter("value", MCPKit.ToolParameterTypes.String_, _
 		  "If provided, sets the constant to this value. If omitted, returns the current value.", _

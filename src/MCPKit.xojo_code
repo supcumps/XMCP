@@ -66,9 +66,11 @@ Protected Module MCPKit
 		  /// Returns the parameter type of the passed value.
 		  
 		  If value.IsArray Then Return MCPKit.ToolParameterTypes.Array_
-		  
+
 		  If value.Type = Variant.TypeString Then Return MCPKit.ToolParameterTypes.String_
-		  
+
+		  If value.Type = Variant.TypeBoolean Then Return MCPKit.ToolParameterTypes.Boolean_
+
 		  If value.IsNumeric Then
 		    If MCPKit.IsInteger(value) Then
 		      Return MCPKit.ToolParameterTypes.Integer_

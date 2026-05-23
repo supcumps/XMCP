@@ -47,7 +47,7 @@ Inherits ConsoleApplication
 		          // Not a notification so it must be an error.
 		          MCPKit.Error(Nil, MCPKit.ErrorTypes.InvalidRequest, "Missing `id` in request.")
 		          If Verbose Then System.DebugLog("Missing `id` in request.")
-		          Exit
+		          Continue
 		        End If
 		      End If
 		      
@@ -212,19 +212,19 @@ Inherits ConsoleApplication
 		  End If
 		  Var tool As MCPKit.Tool = GetToolNamed(toolName)
 		  
-		  // Get the arguments to the tool.
-		  If Not params.HasKey("arguments") Then
-		    Var message As String = "Missing `arguments` key in tool call params."
-		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
-		    If Verbose Then System.DebugLog(message)
-		    Return Nil
-		  End If
-		  Var argumentsJSON As JSONItem = params.Value("arguments")
-		  If argumentsJSON = Nil Then
-		    Var message As String = "The `arguments` value is not a valid object."
-		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
-		    If Verbose Then System.DebugLog(message)
-		    Return Nil
+		  // Get the arguments to the tool. Per MCP spec, `arguments` may be omitted
+		  // for zero-arg tools — treat a missing key as an empty object.
+		  Var argumentsJSON As JSONItem
+		  If params.HasKey("arguments") Then
+		    argumentsJSON = params.Value("arguments")
+		    If argumentsJSON = Nil Then
+		      Var message As String = "The `arguments` value is not a valid object."
+		      MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, message)
+		      If Verbose Then System.DebugLog(message)
+		      Return Nil
+		    End If
+		  Else
+		    argumentsJSON = New JSONItem("{}")
 		  End If
 		  
 		  // Convert the arguments from a JSONItem to an array of ToolArgument instances.
