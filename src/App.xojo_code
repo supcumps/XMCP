@@ -35,7 +35,25 @@ Inherits MCPKit.ServerApplication
 		  Else
 		    If Verbose Then System.DebugLog("WARNING: Xojo documentation not found. Doc tools will be unavailable.")
 		  End If
-		  
+
+		  // Initialize semantic search if the RAG database and embedding server are available.
+		  If DocsPath <> Nil Then
+		    Var dbFile As FolderItem = DocsPath.Child("xojo_rag.db")
+		    If dbFile <> Nil And dbFile.Exists Then
+		      SemanticSearch = New SemanticSearch("http://localhost:8089/v1/embeddings", dbFile.NativePath)
+		      If Verbose Then
+		        If SemanticSearch.Available Then
+		          System.DebugLog("Semantic search enabled.")
+		        Else
+		          System.DebugLog("Semantic search unavailable (embedding server not running or DB not ready).")
+		          SemanticSearch = Nil
+		        End If
+		      ElseIf Not SemanticSearch.Available Then
+		        SemanticSearch = Nil
+		      End If
+		    End If
+		  End If
+
 		  // Register all MCP tools.
 		  RegisterTools( _
 		  New ListProjectItems, _
@@ -228,6 +246,10 @@ Inherits MCPKit.ServerApplication
 
 	#tag Property, Flags = &h0, Description = 546865207368617265642049444520636F6D6D756E696361746F7220696E7374616E63652E
 		IDE As IDECommunicator
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		SemanticSearch As SemanticSearch
 	#tag EndProperty
 
 

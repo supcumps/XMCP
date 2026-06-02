@@ -209,15 +209,15 @@ These tools provide access to the local Xojo documentation, enabling the AI to l
 
 #### `search_docs`
 
-Searches the local Xojo documentation guides and tutorials by keyword. Returns matching sections with surrounding context lines. Use this for conceptual questions about language features, patterns, and best practices. To look up a specific class, method, or property by name, use `lookup_class` instead.
+Searches the local Xojo documentation guides and tutorials. Returns matching sections with title and content. Use this for conceptual questions about language features, patterns, and best practices. To look up a specific class, method, or property by name, use `lookup_class` instead.
+
+When the XMCP-RAG embedding server is running and `xojo_rag.db` is present alongside the documentation, `search_docs` uses semantic (vector) search for higher-quality results. Otherwise it falls back to keyword search automatically — no configuration required.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `query` | String | Yes | The search term (e.g. `JSONItem`, `FolderItem`, `database`). |
 | `max_results` | Integer | No | Maximum number of matching sections to return. Default: 5. |
-| `context_lines` | Integer | No | Number of lines of context before and after each match. Default: 10. |
-
-The documentation text is cached in memory after the first search for fast subsequent queries.
+| `context_lines` | Integer | No | Number of lines of context before and after each match (keyword search only). Default: 10. |
 
 #### `lookup_class`
 
@@ -287,6 +287,7 @@ The `usage-guide.md` file is distributed next to the XMCP binary. You can edit i
 XMCP
 ├── App                    — MCP server entry point, tool registration, docs auto-detection
 ├── IDECommunicator        — IPC socket communication with Xojo IDE (protocol v2)
+├── SemanticSearch         — Optional semantic search (embedding server + RAG database)
 ├── MCPKit/                — MCP protocol framework
 │   ├── ServerApplication  — JSON-RPC stdin/stdout server loop
 │   ├── Tool               — Base class for MCP tools

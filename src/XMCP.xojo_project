@@ -14,6 +14,7 @@ Class=OptionException;MCPKit/OptionException.xojo_code;&h000000007F941FFF;&h0000
 Class=OptionParser;MCPKit/OptionParser.xojo_code;&h000000000013BFFF;&h000000001571BFFF;false
 Class=Option;MCPKit/Option.xojo_code;&h0000000066AFE7FF;&h000000001571BFFF;false
 Class=IDECommunicator;IDECommunicator.xojo_code;&h000000000CED27FF;&h0000000000000000;false
+Class=SemanticSearch;SemanticSearch.xojo_code;&h000000002A1F8FFF;&h0000000000000000;false
 Folder=Tools;Tools;&hFFFFFFFFAAAA01FF;&h0000000000000000;false
 Class=ListProjectItems;Tools/ListProjectItems.xojo_code;&hFFFFFFFFAAAA02FF;&hFFFFFFFFAAAA01FF;false
 Class=GetCurrentLocation;Tools/GetCurrentLocation.xojo_code;&hFFFFFFFFAAAA03FF;&hFFFFFFFFAAAA01FF;false

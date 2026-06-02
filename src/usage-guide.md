@@ -162,7 +162,7 @@ The IDE scripting API can navigate to top-level items, classes, modules, and win
 
 ### Documentation tools — use search_docs and lookup_class, not list_doc_topics
 
-- `search_docs` — search guides and tutorials by keyword. Use this first.
+- `search_docs` — search guides and tutorials by natural-language query. Use this first for any conceptual or how-to question.
 - `lookup_class` — look up a specific class or method in the API reference.
 - `list_doc_topics` — returns the full documentation index (143,000+ characters). **Never call this to find information** — it wastes tokens and requires multiple slow read passes. Use `search_docs` instead. Only call `list_doc_topics` if the user explicitly asks for a topic overview.
 

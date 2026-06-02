@@ -20,6 +20,7 @@ All notable changes to XMCP will be documented here.
 
 ### Added
 
+- **Semantic search for `search_docs`**: when the XMCP-RAG embedding server (`http://localhost:8089/v1/embeddings`) is running and `xojo_rag.db` is present alongside `llms-full.txt`, `search_docs` automatically uses vector-based semantic search instead of keyword matching. Falls back to keyword search silently when either is unavailable — no configuration required and the AI sees no difference in tool name or output format.
 - **Trust model section in `usage-guide.md`**: documents that XMCP is a full-trust local bridge, not a sandbox — `run_ide_script` executes arbitrary IDE scripting code with full IDE authority, and several other tools mutate the project without confirmation. Intended for a single trusted MCP client on the developer's workstation.
 
 ### Changed

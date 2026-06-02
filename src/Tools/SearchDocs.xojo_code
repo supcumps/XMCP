@@ -39,6 +39,14 @@ Inherits MCPKit.Tool
 		    Return MCPKit.ToolResult.Failure("The query parameter is required.")
 		  End If
 
+		  // Use semantic search when the embedding server and RAG database are available.
+		  If App.SemanticSearch <> Nil Then
+		    Var semanticResult As String = App.SemanticSearch.Search(query, maxResults)
+		    If semanticResult <> "" Then
+		      Return MCPKit.ToolResult.Success(semanticResult)
+		    End If
+		  End If
+
 		  If App.DocsPath = Nil Then
 		    Return MCPKit.ToolResult.Failure("Xojo documentation not found. Use --docs-path to specify the documentation directory, or ensure the Xojo IDE has been run at least once.")
 		  End If
