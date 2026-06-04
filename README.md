@@ -211,7 +211,16 @@ These tools provide access to the local Xojo documentation, enabling the AI to l
 
 Searches the local Xojo documentation guides and tutorials. Returns matching sections with title and content. Use this for conceptual questions about language features, patterns, and best practices. To look up a specific class, method, or property by name, use `lookup_class` instead.
 
-When the XMCP-RAG embedding server is running and `xojo_rag.db` is present alongside the documentation, `search_docs` uses semantic (vector) search for higher-quality results. Otherwise it falls back to keyword search automatically — no configuration required.
+When the XMCP-RAG embedding server is running and `xojo_rag.db` is present alongside the documentation, `search_docs` uses **hybrid search** (vector + FTS5 full-text) for higher-quality results. Otherwise it falls back to keyword search automatically — no configuration required.
+
+**Hybrid search pipeline:**
+1. Embeds the query with the local embedding model
+2. Scores all chunks by cosine similarity (vector search)
+3. Scores matching chunks with BM25 (FTS5 full-text search) — catches exact API names that semantic search may miss
+4. Combines: `final = 0.7 × cosine + 0.3 × fts`
+5. Deduplicates chunks from the same source with near-identical scores
+6. Expands context by fetching adjacent chunks for high-scoring matches (score ≥ 0.72)
+7. Returns results sorted logically by document position within each source
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -287,7 +296,7 @@ The `usage-guide.md` file is distributed next to the XMCP binary. You can edit i
 XMCP
 ├── App                    — MCP server entry point, tool registration, docs auto-detection
 ├── IDECommunicator        — IPC socket communication with Xojo IDE (protocol v2)
-├── SemanticSearch         — Optional semantic search (embedding server + RAG database)
+├── SemanticSearch         — Optional hybrid search (vector + FTS5, neighbour expansion, cache)
 ├── MCPKit/                — MCP protocol framework
 │   ├── ServerApplication  — JSON-RPC stdin/stdout server loop
 │   ├── Tool               — Base class for MCP tools

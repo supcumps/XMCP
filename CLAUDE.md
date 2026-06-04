@@ -60,6 +60,22 @@ If either is absent, `search_docs` falls back to keyword search transparently. T
 
 The RAG database must be placed in the same directory as `llms-full.txt` (i.e. `DocsPath`). To build it, run the XMCP-RAG indexer with the embedding server running.
 
+**SemanticSearch pipeline (current implementation):**
+
+1. **Embed query** — HTTP POST to `mEmbeddingUrl`; returns float32 MemoryBlock.
+2. **Vector search** — SELECT all rows from `embeddings JOIN chunks`; compute cosine similarity for each.
+3. **FTS5 hybrid** — SELECT top 200 from `chunks_fts MATCH ?`; normalise BM25 scores to [0,1]; combine: `final = 0.7×cosine + 0.3×fts`. Falls back to vector-only if `chunks_fts` is absent (old DB).
+4. **Partial selection sort** — find top `maxResults×2` candidates by combined score.
+5. **Deduplication** — skip chunks from the same `source` whose score is within 0.04 of the previous chunk from that source (avoids returning near-identical sections).
+6. **Neighbour expansion** — for chunks with cosine score ≥ 0.72, fetch `prev_id` and `next_id` from the DB and include them (context window expansion).
+7. **Logical sort** — group results by `source`, ordered by best score; sort chunks within each source group by `chunk_index` ascending.
+8. **Cache** — result string stored in `mCache` (Dictionary, max 50 entries, full clear on overflow).
+
+**Performance:**
+- `mDB` is a persistent `SQLiteDatabase` held open for the process lifetime (no reconnect per query).
+- WAL mode (`PRAGMA journal_mode=WAL`), 256 MB mmap (`PRAGMA mmap_size`), 64 MB page cache (`PRAGMA cache_size=-65536`) applied at startup.
+- Cache (`mCache`) prevents redundant vector scoring for repeated queries within a session.
+
 ### Tool Implementation Pattern
 
 Every tool follows this structure:
