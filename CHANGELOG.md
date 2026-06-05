@@ -2,6 +2,11 @@
 
 All notable changes to XMCP will be documented here.
 
+## [1.4.1] - 2026-06-05
+
+### Fixed
+- **100% CPU spin on client exit**: `Input` does not raise `IOException` at EOF — it returns an empty string, causing the read loop to busy-spin indefinitely when the spawning client closed stdin. Switched to `StdIn.ReadLine` + `StdIn.EndOfFile` check, which correctly detects EOF and calls `Quit` to terminate the process.
+
 ## [1.4.0] - 2026-06-04
 
 ### Added
