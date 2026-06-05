@@ -1,5 +1,5 @@
 Type=Console
-RBProjectVersion=2025.031
+RBProjectVersion=2026.012
 MinIDEVersion=20070100
 OrigIDEVersion=20250301
 Class=App;App.xojo_code;&h00000000242957FF;&h0000000000000000;false
@@ -73,7 +73,7 @@ WinUIFramework=False
 NativeWinUISizes=False
 IsWebProject=False
 LinuxBuildArchitecture=1
-MacBuildArchitecture=4
+MacBuildArchitecture=3
 WindowsBuildArchitecture=1
 OptimizationLevel=0
 WindowsVersions=

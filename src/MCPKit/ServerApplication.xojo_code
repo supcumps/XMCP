@@ -27,8 +27,10 @@ Inherits ConsoleApplication
 		  
 		  While True
 		    Try
-		      // Read from stdin (blocks until a line arrives) and ignore blank lines.
-		      Var inputLine As String = Input
+		      // Read from stdin (blocks until a line arrives).
+		      Var inputLine As String = StdIn.ReadLine
+		      // EOF: client process has closed stdin — exit cleanly.
+		      If StdIn.EndOfFile Then Quit
 		      If inputLine = "" Then Continue
 		      
 		      If Verbose Then System.DebugLog(Name + " received: " + inputLine)
@@ -61,8 +63,8 @@ Inherits ConsoleApplication
 		      End If
 		      
 		    Catch e As IOException
-		      // End of input stream, exit gracefully.
-		      Exit
+		      // I/O error on stdin — exit cleanly.
+		      Quit
 		      
 		    Catch e As JSONException
 		      
