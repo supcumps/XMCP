@@ -2,6 +2,12 @@
 
 All notable changes to XMCP will be documented here.
 
+## [1.4.2] - 2026-06-06
+
+### Added
+- **`examples/` exposed as MCP resources**: the five reference templates (`App.xojo_code`, `Module1.xojo_code`, `MyClass.xojo_code`, `MyButton.xojo_code`, `Window1.xojo_window`) are now listed via `resources/list` and readable via `resources/read` using `file://examples/<filename>` URIs — AI clients can fetch them directly without needing filesystem access
+- **Build copy steps**: `usage-guide.md` and the `examples/` folder are now copied next to the binary at build time, so distributed builds are self-contained
+
 ## [1.4.1] - 2026-06-05
 
 ### Fixed

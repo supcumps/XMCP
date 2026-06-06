@@ -12,7 +12,7 @@ This is a **Xojo native application** — there is no Makefile, npm, or shell-ba
 
 - **Project file**: `src/XMCP.xojo_project`
 - **Build**: Open the project in Xojo IDE and use Build > Build
-- **Output**: `src/Builds - XMCP/XMCP` (macOS binary)
+- **Output**: `src/Builds - XMCP/macOS ARM 64 bit/XMCP/` — contains the `XMCP` binary, `usage-guide.md`, and `examples/`
 - **Alternatively**: Use the `mcp__xmcp__build_project` MCP tool if XMCP itself is running
 
 There are no automated tests or linting tools; validation happens through Xojo IDE's built-in compiler and manual integration testing with an MCP client.
@@ -148,6 +148,7 @@ Edit source files directly on disk and use `revert_project` to reload. This is t
 - `src/<WindowName>.xojo_window` — window UI, controls, and event handlers
 - `src/XMCP.xojo_project` — project manifest (key/value text format)
 - `src/usage-guide.md` — the MCP resource distributed next to the binary
+- `src/examples/` — reference templates for common Xojo file structures (`App.xojo_code`, `Module1.xojo_code`, `MyClass.xojo_code`, `MyButton.xojo_code`, `Window1.xojo_window`); copy from these when creating new project files
 
 ## usage-guide.md
 

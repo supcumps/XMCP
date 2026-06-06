@@ -418,7 +418,24 @@ Inherits ConsoleApplication
 		    resource.Value("mimeType") = "text/markdown"
 		    resourcesArray.Add(resource)
 		  End If
-		  
+
+		  // Find example files in the examples/ folder next to the executable.
+		  Var examplesDir As FolderItem = App.ExecutableFile.Parent.Child("examples")
+		  If examplesDir <> Nil And examplesDir.Exists Then
+		    Var count As Integer = examplesDir.Count
+		    For i As Integer = 1 To count
+		      Var f As FolderItem = examplesDir.ChildAt(i - 1)
+		      If f <> Nil And Not f.IsFolder Then
+		        Var exResource As New JSONItem
+		        exResource.Value("uri") = "file://examples/" + f.Name
+		        exResource.Value("name") = "Example: " + f.Name
+		        exResource.Value("description") = "Reference template for " + f.Name + ". Copy as a starting point when creating or editing this file type."
+		        exResource.Value("mimeType") = "text/plain"
+		        resourcesArray.Add(exResource)
+		      End If
+		    Next
+		  End If
+
 		  result.Value("resources") = resourcesArray
 		  response.Value("result") = result
 		  Return response
@@ -438,24 +455,36 @@ Inherits ConsoleApplication
 		  Var params As JSONItem = request.Value("params")
 		  Var uri As String = params.Lookup("uri", "")
 		  
-		  If uri <> "file://usage-guide.md" Then
+		  Var targetFile As FolderItem
+		  If uri = "file://usage-guide.md" Then
+		    targetFile = App.ExecutableFile.Parent.Child("usage-guide.md")
+		    If targetFile = Nil Or Not targetFile.Exists Then
+		      MCPKit.Error(RequestID, MCPKit.ErrorTypes.ServerError, "usage-guide.md not found next to XMCP executable.")
+		      Return Nil
+		    End If
+		  ElseIf uri.BeginsWith("file://examples/") Then
+		    Var fileName As String = uri.Middle(16) // strip "file://examples/"
+		    If fileName.Contains("/") Or fileName.Contains("..") Then
+		      MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, "Invalid resource URI: " + uri)
+		      Return Nil
+		    End If
+		    targetFile = App.ExecutableFile.Parent.Child("examples").Child(fileName)
+		    If targetFile = Nil Or Not targetFile.Exists Then
+		      MCPKit.Error(RequestID, MCPKit.ErrorTypes.ServerError, "Example file not found: " + fileName)
+		      Return Nil
+		    End If
+		  Else
 		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.InvalidParameters, "Unknown resource URI: " + uri)
 		    Return Nil
 		  End If
-		  
-		  Var guideFile As FolderItem = App.ExecutableFile.Parent.Child("usage-guide.md")
-		  If guideFile = Nil Or Not guideFile.Exists Then
-		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.ServerError, "usage-guide.md not found next to XMCP executable.")
-		    Return Nil
-		  End If
-		  
+
 		  Var content As String = ""
 		  Try
-		    Var stream As TextInputStream = TextInputStream.Open(guideFile)
+		    Var stream As TextInputStream = TextInputStream.Open(targetFile)
 		    content = stream.ReadAll
 		    stream.Close
 		  Catch e As RuntimeException
-		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.ServerError, "Could not read usage-guide.md: " + e.Message)
+		    MCPKit.Error(RequestID, MCPKit.ErrorTypes.ServerError, "Could not read resource: " + e.Message)
 		    Return Nil
 		  End Try
 		  
@@ -465,9 +494,10 @@ Inherits ConsoleApplication
 		  
 		  Var result As New JSONItem
 		  Var contentsArray As New JSONItem("[]")
+		  Var mimeType As String = If(uri = "file://usage-guide.md", "text/markdown", "text/plain")
 		  Var blob As New JSONItem
-		  blob.Value("uri") = "file://usage-guide.md"
-		  blob.Value("mimeType") = "text/markdown"
+		  blob.Value("uri") = uri
+		  blob.Value("mimeType") = mimeType
 		  blob.Value("text") = content
 		  contentsArray.Add(blob)
 		  result.Value("contents") = contentsArray
