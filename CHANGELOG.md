@@ -2,6 +2,15 @@
 
 All notable changes to XMCP will be documented here.
 
+## [1.5.0] - 2026-06-07
+
+### Added
+- **`MainMenuBar.xojo_menu` example**: reference template for the `.xojo_menu` file format — menu bar with File/Edit/Window/Help menus, separators, keyboard shortcuts, and `DesktopQuitMenuItem`
+- **`DetailWindow.xojo_window` example**: reference template for non-singleton windows (`ImplicitInstance = False`) — demonstrates the `LoadItem()` pre-population pattern, `LayoutControls()`, Default/Cancel button flags, and `Show` vs `ShowModal`
+- **Expanded `MyClass.xojo_code` example**: now includes a custom event definition with `RaiseEvent`, a Shared factory method, a Protected method, and a Note block that documents flag values and block ordering
+- **Expanded `Module1.xojo_code` example**: now includes a private property and a Note block explaining the differences between module and class files
+- **"Xojo file structure rules" section in `usage-guide.md`**: documents the correct block ordering for class, module, and window files; access modifier flag table (`&h0` Public, `&h1` Protected, `&h21` Private); Shared methods; custom event definitions; non-singleton window pattern; Note block format; and MenuHandler syntax
+
 ## [1.4.2] - 2026-06-06
 
 ### Added

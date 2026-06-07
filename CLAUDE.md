@@ -36,10 +36,12 @@ MCP Client (stdin/stdout JSON-RPC)
 **`IDECommunicator.xojo_code`** — Handles all IDE socket communication. Uses IDE Communicator Protocol v2 over a Unix domain socket (`/tmp/XojoIDE` or `/private/tmp/XojoIDE`). Messages are NUL-terminated JSON. Sends a `{"protocol": 2}` handshake, then uses tag-based correlation for synchronous request/response. Default timeout is 10 seconds; builds use 120 seconds.
 
 **`MCPKit/`** — The MCP protocol framework (8 classes):
-- `ServerApplication` — JSON-RPC stdin/stdout loop and tool dispatch
-- `Tool` — Base class all 22 tools inherit from
+- `ServerApplication` — JSON-RPC stdin/stdout loop, tool dispatch, and MCP resources handling (`resources/list` / `resources/read`)
+- `Tool` — Base class all 22 tools inherit from; includes `BuildStringVariableScript(varName, value)` helper for safely passing multiline strings into IDE scripts
 - `ToolParameter`, `ToolArgument`, `ToolResult` — Parameter/result types
 - `OptionParser`, `Option`, `OptionException` — CLI argument parsing
+
+**`Build Automation.xojo_code`** — Xojo build steps that copy `usage-guide.md` and the `examples/` folder next to the binary at build time. Both are also exposed as MCP resources (`file://usage-guide.md` and `file://examples/<filename>`) so compatible clients like Claude Code can fetch them automatically at session start.
 
 **`SemanticSearch.xojo_code`** — Optional semantic search provider. Initialized at startup if `xojo_rag.db` exists in `DocsPath` and the embedding server at `http://localhost:8089/v1/embeddings` responds. Probed once at startup; `App.SemanticSearch` is `Nil` when unavailable (zero overhead). Uses async `URLConnection` + `DoEvents` loop, `SQLiteDatabase`, and cosine similarity over float32 blobs.
 

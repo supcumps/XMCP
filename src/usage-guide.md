@@ -106,16 +106,24 @@ The only exception is when the user explicitly asks you to read or edit code the
 
 Reference examples of all common file structures are in the `examples/` folder next to this file. Use them as templates when creating or editing `.xojo_code` and `.xojo_window` files.
 
+| File type | Used for | Example |
+| --- | --- | --- |
+| `<Name>.xojo_code` | Class, module, interface, app-level code | `MyClass.xojo_code`, `App.xojo_code` |
+| `<Name>.xojo_window` | Window UI layout, controls, window events, control events | `MainWindow.xojo_window` |
+| `<Name>.xojo_menu` | Menu bar definition (separate file, not embedded in window) | `MainMenuBar.xojo_menu` |
+| `<Name>.xojo_project` | Project manifest — lists all files and build settings | edit sparingly |
+
 1. **Find the project directory**
    Call `get_project_info` — it returns a `Project Directory:` line with the full path.
 
 2. **Find the right file**
-   - Classes, modules, app-level code → `<ClassName>.xojo_code`
+   - Classes, modules, interfaces, app-level code → `<ClassName>.xojo_code`
    - Window UI, controls, and event handlers → `<WindowName>.xojo_window`
-   - Project manifest → `<ProjectName>.xojo_project` (key/value text format — edit sparingly)
+   - Menu bars → `<MenuBarName>.xojo_menu`
+   - Project manifest → `<ProjectName>.xojo_project`
 
 3. **Edit the file**
-   `.xojo_code` and `.xojo_window` are plain text with `#tag` markers. Follow the existing structure exactly.
+   `.xojo_code` and `.xojo_window` are plain text with `#tag` markers. Follow the existing structure exactly — Xojo is sensitive to block ordering (see below).
 
    Window-level event handlers go in `#tag WindowCode`:
 
@@ -141,8 +149,124 @@ Reference examples of all common file structures are in the `examples/` folder n
    #tag EndEvents
    ```
 
+   Menu item handlers go in `#tag WindowCode` as `#tag MenuHandler` blocks:
+
+   ```xojo
+   #tag MenuHandler
+       Function FileOpen() As Boolean Handles FileOpen.Action
+         ' handle File > Open
+         Return True
+       End Function
+   #tag EndMenuHandler
+   ```
+
 4. **Reload in the IDE**
    Ask the user for permission first, then call `revert_project`. The reload is destructive to any unsaved IDE-side edits — saving them first would overwrite the disk changes we just made, so the tool deliberately does not save.
+
+---
+
+## Xojo file structure rules
+
+### Block ordering in `.xojo_code` files
+
+Blocks **must** appear in this order or Xojo will reject or silently corrupt the file:
+
+**Class file:**
+1. `#tag Event` definitions (custom events the class can raise)
+2. `#tag Method` blocks (Constructor first by convention, then others)
+3. `#tag Property` blocks
+4. `#tag Constant` blocks
+5. `#tag Note` blocks
+6. `#tag ViewBehavior` — **always last, never add anything after it**
+
+**Module file** (same as class but no `#tag Event`):
+1. `#tag Method` blocks
+2. `#tag Constant` blocks
+3. `#tag Property` blocks
+4. `#tag Note` blocks
+5. `#tag ViewBehavior` — **always last**
+
+**Window file:**
+1. `#tag DesktopWindow` … `#tag EndDesktopWindow` (control layout block)
+2. `#tag WindowCode` … `#tag EndWindowCode` (window events, menu handlers, methods, properties)
+3. `#tag Events ControlName` … `#tag EndEvents` blocks (one per control that has events)
+4. `#tag ViewBehavior` — **always last**
+
+### Access modifier flags
+
+Every `#tag Method` and `#tag Property` line carries a `Flags = &hXX` value. The flag **and** the keyword in the declaration line must match — both are required.
+
+| Flag | Modifier | Applies to |
+| --- | --- | --- |
+| `&h0` | Public | Methods, Properties, Constants |
+| `&h1` | Protected | Methods, Properties |
+| `&h21` | Private | Methods, Properties |
+
+The keyword goes on the declaration line inside the block:
+
+```xojo
+#tag Method, Flags = &h1
+    Protected Function Helper() As String
+      Return "x"
+    End Function
+#tag EndMethod
+
+#tag Property, Flags = &h21
+    Private mName As String
+#tag EndProperty
+```
+
+### Shared (class-level) methods
+
+Add the `Shared` keyword before `Function` or `Sub`. The flag value is identical to instance methods:
+
+```xojo
+#tag Method, Flags = &h0
+    Shared Function Create(name As String) As MyClass
+      Return New MyClass(name)
+    End Function
+#tag EndMethod
+```
+
+Called as `MyClass.Create("foo")` — no instance needed.
+
+### Custom event definitions
+
+A `#tag Event` block inside a **class body** (not a window) *defines* an event the class can fire. It contains only the signature — no body:
+
+```xojo
+#tag Event, Description = "Fired when the count changes."
+    Sub CountChanged(newCount As Integer)
+    End Sub
+#tag EndEvent
+```
+
+Raise it from within the class with `RaiseEvent CountChanged(mCount)`. Consumers implement the handler via `AddEventImplementation` in the IDE, or by editing the `.xojo_window` file directly.
+
+### Non-singleton windows (`ImplicitInstance = False`)
+
+Windows that can be opened multiple times (editor dialogs, detail panels) use `ImplicitInstance = False` in the control block. They must be instantiated explicitly:
+
+```xojo
+Var w As New DetailWindow
+w.LoadItem("Title", "Body text")
+w.Show        ' non-blocking — caller continues
+' -- or --
+w.ShowModal   ' blocks until window closes
+```
+
+The `DetailWindow.xojo_window` example in `examples/` demonstrates this pattern including a `LoadItem()` method, `LayoutControls()`, and `Default`/`Cancel` button flags.
+
+### Note blocks
+
+`#tag Note` blocks are plain-text documentation embedded in the file. They appear before `#tag ViewBehavior`:
+
+```xojo
+#tag Note, Name = DesignNotes
+    Explain design decisions, invariants, or usage here.
+    Free-form text — no special markup needed.
+#tag EndNote
+```
 
 ---
 
