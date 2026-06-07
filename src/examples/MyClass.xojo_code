@@ -64,8 +64,7 @@ Inherits Object
 		Private mCount As Integer
 	#tag EndProperty
 
-	#tag Constant, Flags = &h0
-		kMaxItems As Integer = 100
+	#tag Constant, Name = kMaxItems, Type = Integer, Dynamic = False, Default = "100", Scope = Public
 	#tag EndConstant
 
 	#tag Note, Name = DesignNotes
@@ -88,6 +87,13 @@ Inherits Object
 
 		Shared methods: add the "Shared " keyword before "Function" or "Sub".
 		The flag value is the same as for instance methods (&h0 / &h1 / &h21).
+
+		Constants use a different format from methods and properties — all
+		metadata is on the #tag Constant line itself, nothing inside the block:
+		  #tag Constant, Name = kMax, Type = Integer, Dynamic = False, Default = "100", Scope = Public
+		  #tag EndConstant
+		Valid Scope values: Public, Protected, Private.
+		Valid Type values: String, Integer, Double, Boolean, Color.
 
 		Custom events: #tag Event inside a class body defines an event that the
 		class can RaiseEvent. Consumers add an event handler with

@@ -14,8 +14,7 @@ Protected Module Module1
 		End Sub
 	#tag EndMethod
 
-	#tag Constant, Flags = &h0
-		kVersion As String = "1.0.0"
+	#tag Constant, Name = kVersion, Type = String, Dynamic = False, Default = "1.0.0", Scope = Public
 	#tag EndConstant
 
 	#tag Property, Flags = &h0
@@ -42,10 +41,16 @@ Protected Module Module1
 		  4. #tag Note blocks
 		  5. #tag ViewBehavior  (always last)
 
-		Access modifier flags:
+		Access modifier flags (methods and properties only):
 		  &h0   Public
 		  &h1   Protected  (rarely used in modules — visible within the namespace)
 		  &h21  Private
+
+		Constants use a different format — all metadata on the #tag Constant line:
+		  #tag Constant, Name = kVersion, Type = String, Dynamic = False, Default = "1.0", Scope = Public
+		  #tag EndConstant
+		Valid Scope values: Public, Protected, Private.
+		Valid Type values: String, Integer, Double, Boolean, Color.
 
 		Modules defined inside another module (namespace modules) use the same
 		file format. The .xojo_project entry uses "Module=Name;Path" for top-level

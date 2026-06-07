@@ -35,8 +35,7 @@ Inherits Application
 		MyProperty As String
 	#tag EndProperty
 
-	#tag Constant, Flags = &h0
-		kAppName As String = "MyApp"
+	#tag Constant, Name = kAppName, Type = String, Dynamic = False, Default = "MyApp", Scope = Public
 	#tag EndConstant
 
 	#tag ViewBehavior

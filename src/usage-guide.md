@@ -198,7 +198,7 @@ Every `#tag Method` and `#tag Property` line carries a `Flags = &hXX` value. The
 
 | Flag | Modifier | Applies to |
 | --- | --- | --- |
-| `&h0` | Public | Methods, Properties, Constants |
+| `&h0` | Public | Methods, Properties |
 | `&h1` | Protected | Methods, Properties |
 | `&h21` | Private | Methods, Properties |
 
@@ -215,6 +215,18 @@ The keyword goes on the declaration line inside the block:
     Private mName As String
 #tag EndProperty
 ```
+
+**Constants use a different format** — all metadata is on the `#tag Constant` line itself, nothing inside the block:
+
+```xojo
+#tag Constant, Name = kMaxItems, Type = Integer, Dynamic = False, Default = "100", Scope = Public
+#tag EndConstant
+
+#tag Constant, Name = kSecret, Type = String, Dynamic = False, Default = "", Scope = Private
+#tag EndConstant
+```
+
+Valid `Scope` values for constants: `Public`, `Protected`, `Private`. Valid `Type` values: `String`, `Integer`, `Double`, `Boolean`, `Color`.
 
 ### Shared (class-level) methods
 
