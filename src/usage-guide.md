@@ -280,6 +280,28 @@ The `DetailWindow.xojo_window` example in `examples/` demonstrates this pattern 
 #tag EndNote
 ```
 
+### String constants in `.xojo_window` files
+
+Constants in `.xojo_window` files use a different escape format than `.xojo_code` files. The IDE encodes the `Default` value like this:
+
+| Character | `.xojo_window` encoding |
+| --- | --- |
+| `"` (double quote) | `\"` |
+| `'` (single quote) | `\'` |
+| `=` | `\x3D` |
+| `,` (comma) | `\x2C` |
+| newline | `\n` |
+| Non-ASCII (e.g. `°`) | UTF-8 bytes e.g. `\xC2\xB0` — **not** `\uXXXX` |
+
+Note: `.xojo_code` files use `""` for embedded double quotes — the `\x3D`/`\x2C`/`\'` rules **only** apply to `.xojo_window`.
+
+**Never write HTML, JavaScript, or any string containing commas or single quotes directly into a constant `Default` value in a `.xojo_window` file on disk.** Missed characters silently truncate the value with no error.
+
+Use one of these approaches instead:
+
+1. **Paste via the IDE** — enter the raw value in the constant's Default Value field in the Xojo IDE, let the IDE escape it, then save (Cmd+S).
+2. **Build at runtime** — assemble the string in a Xojo method using string concatenation. This avoids escaping entirely and is more readable.
+
 ---
 
 ## IDE tool limitations to be aware of
