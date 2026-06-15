@@ -20,11 +20,13 @@ This file is automatically loaded as an MCP resource when you connect to XMCP. I
 
 ## What XMCP can do
 
-XMCP gives you direct control over the Xojo IDE via 22 tools:
+XMCP gives you direct control over the Xojo IDE via 25 tools:
 
 - **Navigate**: `list_project_items`, `get_current_location`, `select_project_item`
 - **Read/write code**: `get_code`, `set_code`, `get_selected_text`, `set_selected_text`
 - **Build and run**: `build_project`, `run_project`, `stop_project`
+- **Save and analyze**: `save_project`, `analyze_project`
+- **Debug sessions**: `debug_control`
 - **Create items**: `create_project_item`
 - **Inspect and modify**: `get_item_description`, `constant_value`, `get_project_info`, `revert_project`
 - **IDE scripting**: `run_ide_script` (escape hatch for anything not covered)
@@ -39,7 +41,7 @@ XMCP gives you direct control over the Xojo IDE via 22 tools:
 XMCP runs as a local process that drives a real Xojo IDE on the user's machine. It is **not** a sandbox. In particular:
 
 - **`run_ide_script` is an unrestricted escape hatch.** It executes arbitrary Xojo IDE scripting code with the IDE's full authority — read or write any file the IDE can reach, modify project code, build, run, install, or shell out via the IDE's scripting surface.
-- **`set_code`, `create_project_item`, `build_project`, `run_project`, `revert_project`** all mutate the user's project, run user-authored code, or discard work. None of them ask the IDE for confirmation.
+- **`set_code`, `create_project_item`, `build_project`, `run_project`, `revert_project`, `save_project`, `analyze_project`, `debug_control`** all mutate the user's project, run user-authored code, or discard work. None of them ask the IDE for confirmation.
 - **Direct file edits** to `.xojo_code` / `.xojo_window` / `.xojo_project` files happen at the filesystem layer with the user's normal write permissions.
 
 This is appropriate for the intended use case: a single trusted MCP client (Claude Code) on the developer's own workstation acting on their explicit instructions. It is **not** appropriate to expose XMCP to an untrusted client or a multi-tenant context — there is no privilege separation, no per-tool capability check, and no audit trail beyond `/tmp/xmcp_debug.log`.
@@ -368,6 +370,39 @@ Always wait for the user's answer before proceeding. Asking a question and then 
 **After `run_project` returns "Project launched in debug mode"**: always ask the user if the app is behaving correctly and if they see any exceptions in the IDE debugger.
 
 **Note:** `run_project` catches syntax errors. Runtime exceptions are visible to the user in the Xojo IDE debugger — but not to XMCP.
+
+### save_project — when and why to call it
+
+`set_code` writes to the IDE's in-memory editor but does **not** save to disk. After writing code with `set_code`, call `save_project` before building or running so that the changes are persisted. (Direct file edits on disk are already saved; `save_project` is only needed after `set_code`.)
+
+### analyze_project — check before building
+
+Use `analyze_project` to catch errors and warnings without triggering a full build. It is faster than `build_project` and useful for a quick sanity check after editing code.
+
+- **`scope="project"`** (default) — analyzes the entire project. Use before a build.
+- **`scope="item"`** — analyzes only the currently selected item. Use for a fast check on the item you just edited.
+
+Warnings return as success (they don't block building). Errors return as failure with a formatted list identical to `build_project` output.
+
+**Recommended pre-build workflow:**
+1. Edit code (direct file edit or `set_code`)
+2. `save_project` (if you used `set_code`)
+3. `analyze_project` — fix any errors before proceeding
+4. `run_project` or `build_project`
+
+### debug_control — stepping through a debug session
+
+When a debug session is active (started with `run_project`) and the app is paused at a breakpoint or exception, use `debug_control` to drive execution:
+
+| Action | Equivalent IDE action |
+| --- | --- |
+| `step_over` | Step over the current line |
+| `step_into` | Step into the method call on the current line |
+| `step_out` | Step out of the current method |
+| `resume` | Continue running until the next breakpoint or pause |
+| `pause` | Pause a running debug session |
+
+**Note:** XMCP cannot read variable values, set breakpoints, or inspect the call stack — those require the Xojo IDE debugger UI. `debug_control` only drives execution flow.
 
 ### build_project uses the IDE's Build Settings
 

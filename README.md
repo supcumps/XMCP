@@ -2,7 +2,7 @@
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that gives AI assistants direct control over the [Xojo IDE](https://www.xojo.com). Built in Xojo using [MCPKit](https://github.com/gkjpettet/MCPKit) by Garry Pettet.
 
-XMCP connects to the Xojo IDE via its IPC socket and exposes 22 tools that let an AI navigate projects, read and write code, build and run applications, create project items, inspect and modify item descriptions and constants, look up Xojo documentation, read debug logs and system output, and estimate request cost - all through the standard MCP protocol over stdin/stdout.
+XMCP connects to the Xojo IDE via its IPC socket and exposes 25 tools that let an AI navigate projects, read and write code, build, run, analyze, and save projects, control debug sessions, create project items, inspect and modify item descriptions and constants, look up Xojo documentation, read debug logs and system output, and estimate request cost - all through the standard MCP protocol over stdin/stdout.
 
 XMCP also ships a `usage-guide.md` file next to the binary, exposed as an MCP resource. Compatible clients (e.g. Claude Code) fetch it automatically at session start, giving the AI immediate awareness of XMCP's capabilities, known IDE scripting limitations, and fallback strategies — without any extra configuration. You can edit the file to add project-specific notes without rebuilding.
 
@@ -76,7 +76,7 @@ XMCP retries both standard socket paths on each IDE request, so tools begin work
 
 ## Tools
 
-XMCP exposes 22 MCP tools organized into four categories.
+XMCP exposes 25 MCP tools organized into four categories.
 
 ### IDE Tools
 
@@ -203,6 +203,28 @@ Gets or sets the value of a project constant. The constant must already exist in
 | `name` | String | Yes | The constant name. Can be simple (e.g. `kVersion`) or fully qualified (e.g. `App.kVersion`). |
 | `value` | String | No | If provided, sets the constant to this value. If omitted, returns the current value. |
 
+#### `save_project`
+
+Saves the current Xojo project to disk. Call this after making changes via `set_code` or other IDE tools to persist them before building or running.
+
+*No parameters.*
+
+#### `analyze_project`
+
+Analyzes the current Xojo project for compile errors and warnings without building. Reports unused variables, type mismatches, deprecated API usage, and other issues. Warnings return as success (they don't block building); errors return as failure.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `scope` | String | No | `"project"` (default) — analyze entire project; `"item"` — analyze only the currently selected item. |
+
+#### `debug_control`
+
+Controls an active Xojo debug session. Requires a running debug session started with `run_project`.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `action` | String | Yes | One of: `"step_over"`, `"step_into"`, `"step_out"`, `"resume"`, `"pause"`. |
+
 ### Documentation Tools
 
 These tools provide access to the local Xojo documentation, enabling the AI to look up classes, search for APIs, and browse available topics. Documentation is auto-detected from `~/Library/Application Support/Xojo/Xojo/<version>/Documentation/` or can be specified with `--docs-path`.
@@ -305,8 +327,8 @@ XMCP
 │   ├── ToolResult         — Success/Failure result type
 │   ├── OptionParser       — CLI argument parsing
 │   └── Option             — CLI option definition
-└── Tools/                 — 22 MCP tool implementations
-    ├── IDE tools (16)     — Control the Xojo IDE via IPC
+└── Tools/                 — 25 MCP tool implementations
+    ├── IDE tools (19)     — Control the Xojo IDE via IPC
     ├── Doc tools (3)      — Search and browse local Xojo documentation
     ├── Debug tools (2)    — Read crash logs and system diagnostic output
     └── Cost tools (1)     — Estimate request token cost and alternatives

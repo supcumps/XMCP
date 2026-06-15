@@ -2,6 +2,13 @@
 
 All notable changes to XMCP will be documented here.
 
+## [1.6.0] - 2026-06-15
+
+### Added
+- **`save_project`**: saves the current project to disk via `DoCommand("SaveFile")` — no parameters required. Use after `set_code` or other IDE edits to persist changes before building or running.
+- **`analyze_project`**: runs `CheckProjectErrors` (or `CheckItemErrors` with `scope="item"`) without building. Returns a formatted list of errors and warnings using the same structure as `build_project`. Warnings return as success (they don't block builds); errors return as failure.
+- **`debug_control`**: controls an active debug session. Supports `step_over`, `step_into`, `step_out`, `resume`, and `pause` via the `action` parameter.
+
 ## [1.5.0] - 2026-06-07
 
 ### Added

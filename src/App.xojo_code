@@ -77,10 +77,13 @@ Inherits MCPKit.ServerApplication
 		  New RevertProject, _
 		  New EstimateRequestCost, _
 		  New GetDebugLog, _
-		  New GetSystemLog _
+		  New GetSystemLog, _
+		  New SaveProject, _
+		  New AnalyzeProject, _
+		  New DebugControl _
 		  )
 
-		  If Verbose Then System.DebugLog("XMCP server configured with 22 tools.")
+		  If Verbose Then System.DebugLog("XMCP server configured with 25 tools.")
 		  
 		End Sub
 	#tag EndEvent
@@ -90,7 +93,7 @@ Inherits MCPKit.ServerApplication
 		  If CommandLineParser.HelpRequested Then
 		    CommandLineParser.ShowHelp("Options")
 		    Print("")
-		    Print("MCP Tools (22):")
+		    Print("MCP Tools (25):")
 		    Print("")
 		    Print("  IDE Tools:")
 		    Print("  list_project_items   List child items at a project location")
@@ -109,6 +112,9 @@ Inherits MCPKit.ServerApplication
 		    Print("  revert_project       Reload project from disk after file changes")
 		    Print("  get_item_description Get or set the description of a project item")
 		    Print("  constant_value       Get or set the value of a project constant")
+		    Print("  save_project         Save the project to disk")
+		    Print("  analyze_project      Analyze project for errors and warnings")
+		    Print("  debug_control        Step, resume, or pause an active debug session")
 		    Print("")
 		    Print("  Documentation Tools:")
 		    Print("  search_docs          Search Xojo documentation by keyword")

@@ -24,20 +24,20 @@ There are no automated tests or linting tools; validation happens through Xojo I
 ```
 MCP Client (stdin/stdout JSON-RPC)
     → MCPKit.ServerApplication  (request routing)
-        → Tool.Run()            (each of 22 tools)
+        → Tool.Run()            (each of 25 tools)
             → IDECommunicator   (IPCSocket to Xojo IDE)
                 → Xojo IDE      (executes IDE scripts, returns results)
 ```
 
 ### Key Components
 
-**`App.xojo_code`** — Entry point. Registers all 22 tools in `Configure()`, auto-detects the Xojo documentation path under `~/Library/Application Support/Xojo/`, initializes `IDECommunicator` and optionally `SemanticSearch`. The global `App.IDE` instance is used by all IDE tools; `App.SemanticSearch` is used by `SearchDocs` when available.
+**`App.xojo_code`** — Entry point. Registers all 25 tools in `Configure()`, auto-detects the Xojo documentation path under `~/Library/Application Support/Xojo/`, initializes `IDECommunicator` and optionally `SemanticSearch`. The global `App.IDE` instance is used by all IDE tools; `App.SemanticSearch` is used by `SearchDocs` when available.
 
 **`IDECommunicator.xojo_code`** — Handles all IDE socket communication. Uses IDE Communicator Protocol v2 over a Unix domain socket (`/tmp/XojoIDE` or `/private/tmp/XojoIDE`). Messages are NUL-terminated JSON. Sends a `{"protocol": 2}` handshake, then uses tag-based correlation for synchronous request/response. Default timeout is 10 seconds; builds use 120 seconds.
 
 **`MCPKit/`** — The MCP protocol framework (8 classes):
 - `ServerApplication` — JSON-RPC stdin/stdout loop, tool dispatch, and MCP resources handling (`resources/list` / `resources/read`)
-- `Tool` — Base class all 22 tools inherit from; includes `BuildStringVariableScript(varName, value)` helper for safely passing multiline strings into IDE scripts
+- `Tool` — Base class all 25 tools inherit from; includes `BuildStringVariableScript(varName, value)` helper for safely passing multiline strings into IDE scripts
 - `ToolParameter`, `ToolArgument`, `ToolResult` — Parameter/result types
 - `OptionParser`, `Option`, `OptionException` — CLI argument parsing
 
@@ -45,8 +45,8 @@ MCP Client (stdin/stdout JSON-RPC)
 
 **`SemanticSearch.xojo_code`** — Optional semantic search provider. Initialized at startup if `xojo_rag.db` exists in `DocsPath` and the embedding server at `http://localhost:8089/v1/embeddings` responds. Probed once at startup; `App.SemanticSearch` is `Nil` when unavailable (zero overhead). Uses async `URLConnection` + `DoEvents` loop, `SQLiteDatabase`, and cosine similarity over float32 blobs.
 
-**`Tools/`** — 22 tool implementations, each inheriting `MCPKit.Tool` and implementing `Run(args() As MCPKit.ToolArgument) As MCPKit.ToolResult`:
-- **16 IDE tools**: list/navigate/read/write project items, build, run, stop, create items, run IDE scripts, get project info, revert, get/set item description, get/set constant value, get/set selected text
+**`Tools/`** — 25 tool implementations, each inheriting `MCPKit.Tool` and implementing `Run(args() As MCPKit.ToolArgument) As MCPKit.ToolResult`:
+- **19 IDE tools**: list/navigate/read/write project items, build, run, stop, save, analyze, debug control, create items, run IDE scripts, get project info, revert, get/set item description, get/set constant value, get/set selected text
 - **3 documentation tools**: search docs (guides/tutorials), lookup class (API reference), list topics (operate on cached `llms-full.txt` / `llms.txt`)
 - **2 debug tools**: `GetDebugLog` (reads `/tmp/xmcp_debug.log`), `GetSystemLog` (reads macOS unified log via `Shell`)
 - **1 cost tool**: `EstimateRequestCost` (static heuristics, no IDE call)
