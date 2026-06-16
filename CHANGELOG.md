@@ -2,6 +2,11 @@
 
 All notable changes to XMCP will be documented here.
 
+## [1.6.1] - 2026-06-16
+
+### Changed
+- **Clearer editing guidance in `usage-guide.md`**: "How to edit code" section now explicitly names direct disk editing as the primary path and warns against routing edits through `run_ide_script` + `DoShellCommand` + Python/shell scripts — a fragile workaround that's unnecessary when the MCP client has its own file-editing tools. Also clarifies why `set_code` is not suitable for general editing (no method-level targeting, no `.xojo_window` support).
+
 ## [1.6.0] - 2026-06-15
 
 ### Added
