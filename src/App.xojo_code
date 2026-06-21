@@ -35,7 +35,7 @@ Inherits MCPKit.ServerApplication
 		  Else
 		    If Verbose Then System.DebugLog("WARNING: Xojo documentation not found. Doc tools will be unavailable.")
 		  End If
-
+		  
 		  // Initialize semantic search if the RAG database and embedding server are available.
 		  If DocsPath <> Nil Then
 		    Var dbFile As FolderItem = DocsPath.Child("xojo_rag.db")
@@ -53,37 +53,14 @@ Inherits MCPKit.ServerApplication
 		      End If
 		    End If
 		  End If
-
-		  // Register all MCP tools.
-		  RegisterTools( _
-		  New ListProjectItems, _
-		  New GetCurrentLocation, _
-		  New SelectProjectItem, _
-		  New GetCode, _
-		  New SetCode, _
-		  New GetSelectedText, _
-		  New SetSelectedText, _
-		  New BuildProject, _
-		  New RunProject, _
-		  New StopProject, _
-		  New CreateProjectItem, _
-		  New RunIDEScript, _
-		  New GetProjectInfo, _
-		  New GetItemDescription, _
-		  New ConstantValue, _
-		  New SearchDocs, _
-		  New LookupClass, _
-		  New ListDocTopics, _
-		  New RevertProject, _
-		  New EstimateRequestCost, _
-		  New GetDebugLog, _
-		  New GetSystemLog, _
-		  New SaveProject, _
-		  New AnalyzeProject, _
-		  New DebugControl _
-		  )
-
-		  If Verbose Then System.DebugLog("XMCP server configured with 25 tools.")
+		  
+		  // Register all MCP tools from the same list used by terminal help.
+		  Var tools() As MCPKit.Tool = ConfiguredTools
+		  For Each tool As MCPKit.Tool In tools
+		    RegisterTools(tool)
+		  Next tool
+		  
+		  If Verbose Then System.DebugLog("XMCP server configured with " + tools.Count.ToString + " tools.")
 		  
 		End Sub
 	#tag EndEvent
@@ -93,7 +70,7 @@ Inherits MCPKit.ServerApplication
 		  If CommandLineParser.HelpRequested Then
 		    CommandLineParser.ShowHelp("Options")
 		    Print("")
-		    Print("MCP Tools (25):")
+		    Print("MCP Tools (" + ConfiguredTools.Count.ToString + "):")
 		    Print("")
 		    Print("  IDE Tools:")
 		    Print("  list_project_items   List child items at a project location")
@@ -115,6 +92,9 @@ Inherits MCPKit.ServerApplication
 		    Print("  save_project         Save the project to disk")
 		    Print("  analyze_project      Analyze project for errors and warnings")
 		    Print("  debug_control        Step, resume, or pause an active debug session")
+		    Print("  write_file           Write text content directly to a file on disk")
+		    Print("  read_file            Read text content directly from a file on disk")
+		    Print("  hash_file            Hash a file with MD5 or SHA256")
 		    Print("")
 		    Print("  Documentation Tools:")
 		    Print("  search_docs          Search Xojo documentation by keyword")
@@ -157,6 +137,48 @@ Inherits MCPKit.ServerApplication
 		  
 		End Sub
 	#tag EndEvent
+
+
+	#tag Method, Flags = &h21
+		Private Function ConfiguredTools() As MCPKit.Tool()
+		  /// Returns the complete tool list exposed by XMCP.
+		  /// Keep this as the single source of truth for startup registration and
+		  /// terminal help counts so documentation cannot drift from reality.
+		  
+		  Var tools() As MCPKit.Tool
+		  tools.Add(New ListProjectItems)
+		  tools.Add(New GetCurrentLocation)
+		  tools.Add(New SelectProjectItem)
+		  tools.Add(New GetCode)
+		  tools.Add(New SetCode)
+		  tools.Add(New GetSelectedText)
+		  tools.Add(New SetSelectedText)
+		  tools.Add(New BuildProject)
+		  tools.Add(New RunProject)
+		  tools.Add(New StopProject)
+		  tools.Add(New CreateProjectItem)
+		  tools.Add(New RunIDEScript)
+		  tools.Add(New GetProjectInfo)
+		  tools.Add(New GetItemDescription)
+		  tools.Add(New ConstantValue)
+		  tools.Add(New SearchDocs)
+		  tools.Add(New LookupClass)
+		  tools.Add(New ListDocTopics)
+		  tools.Add(New RevertProject)
+		  tools.Add(New EstimateRequestCost)
+		  tools.Add(New GetDebugLog)
+		  tools.Add(New GetSystemLog)
+		  tools.Add(New SaveProject)
+		  tools.Add(New AnalyzeProject)
+		  tools.Add(New DebugControl)
+		  tools.Add(New WriteFile)
+		  tools.Add(New ReadFile)
+		  tools.Add(New HashFile)
+		  
+		  Return tools
+		  
+		End Function
+	#tag EndMethod
 
 
 	#tag Method, Flags = &h21
@@ -245,6 +267,22 @@ Inherits MCPKit.ServerApplication
 		  
 		End Function
 	#tag EndMethod
+
+
+	#tag Note, Name = Runargs modification
+		Yes. For hashing potentially large files, you should stream the file in chunks rather than reading the entire file into memory.
+		
+		The implementation below:
+		
+		* Supports MD5 and SHA256
+		* Handles files of arbitrary size
+		* Uses a 1 MB buffer
+		* Provides proper error handling
+		* Avoids Shell completely
+		* Works on macOS, Windows, and Linux
+		
+	#tag EndNote
+
 
 	#tag Property, Flags = &h0, Description = 5061746820746F20586F6A6F20646F63756D656E746174696F6E206469726563746F72792E
 		DocsPath As FolderItem
