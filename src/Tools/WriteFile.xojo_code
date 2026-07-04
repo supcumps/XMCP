@@ -3,10 +3,10 @@ Protected Class WriteFile
 Inherits MCPKit.Tool
 	#tag Method, Flags = &h0
 		Sub Constructor()
-		  Super.Constructor("write_file", "Writes text content to a file on disk. Creates the file if it does not exist; overwrites it if it does. Use this to edit Xojo source files (.xojo_code, .xojo_window, .xojo_project) directly on disk — the primary workflow for all code changes. After writing, call revert_project to reload the project in the IDE. Content is written as UTF-8. Parent directories must already exist.")
+		  Super.Constructor("write_file", "Writes text content to a file on disk. Creates the file if it does not exist; overwrites it if it does. Use this to edit Xojo source files (.xojo_code, .xojo_window, .xojo_project) directly on disk — the primary workflow for all code changes. After writing, call revert_project to reload the project in the IDE. Content is written as UTF-8. Parent directories must already exist. Access is restricted to the directories configured via --file-root.")
 		  
 		  Parameters.Add(New MCPKit.ToolParameter("path", MCPKit.ToolParameterTypes.String_, _
-		  "Absolute path to the file to write (e.g. /Users/you/GitHub/MyApp/src/Tools/MyTool.xojo_code).", _
+		  "Absolute path to the file to write (e.g. /Users/you/GitHub/MyApp/src/Tools/MyTool.xojo_code). Must be inside an allowed file root.", _
 		  False, "", True))
 		  
 		  Parameters.Add(New MCPKit.ToolParameter("content", MCPKit.ToolParameterTypes.String_, _
@@ -32,6 +32,12 @@ Inherits MCPKit.Tool
 		  
 		  If path.IsEmpty Then
 		    Return MCPKit.ToolResult.Failure("The path parameter is required and cannot be empty.")
+		  End If
+		  
+		  Var reason As String
+		  Var allowed As Boolean = FileGuard.Validate(path, reason)
+		  If Not allowed Then
+		    Return MCPKit.ToolResult.Failure(reason)
 		  End If
 		  
 		  Var f As New FolderItem(path, FolderItem.PathModes.Native)

@@ -3,10 +3,10 @@ Protected Class ReadFile
 Inherits MCPKit.Tool
 	#tag Method, Flags = &h0
 		Sub Constructor()
-		  Super.Constructor("read_file", "Reads the full text content of a file from disk and returns it as a string. Use this to read Xojo source files (.xojo_code, .xojo_window, .xojo_project) before editing them — always read first so you can make a precise targeted change. Also use for reading any text file on disk (logs, config files, scripts). Content is read as UTF-8. For large files, use the offset and length parameters to read in chunks.")
+		  Super.Constructor("read_file", "Reads the full text content of a file from disk and returns it as a string. Use this to read Xojo source files (.xojo_code, .xojo_window, .xojo_project) before editing them — always read first so you can make a precise targeted change. Also use for reading any text file on disk (logs, config files, scripts). Content is read as UTF-8. For large files, use the offset and length parameters to read in chunks; offsets are true character offsets, so multibyte UTF-8 content is chunked safely. Access is restricted to the directories configured via --file-root.")
 		  
 		  Parameters.Add(New MCPKit.ToolParameter("path", MCPKit.ToolParameterTypes.String_, _
-		  "Absolute path to the file to read (e.g. /Users/you/GitHub/MyApp/src/Tools/MyTool.xojo_code).", _
+		  "Absolute path to the file to read (e.g. /Users/you/GitHub/MyApp/src/Tools/MyTool.xojo_code). Must be inside an allowed file root.", _
 		  False, "", True))
 		  
 		  Parameters.Add(New MCPKit.ToolParameter("offset", MCPKit.ToolParameterTypes.Integer_, _
@@ -57,6 +57,12 @@ Inherits MCPKit.Tool
 		    Return MCPKit.ToolResult.Failure("Length cannot be negative.")
 		  End If
 		  
+		  Var reason As String
+		  Var allowed As Boolean = FileGuard.Validate(path, reason)
+		  If Not allowed Then
+		    Return MCPKit.ToolResult.Failure(reason)
+		  End If
+		  
 		  Var f As New FolderItem(path, FolderItem.PathModes.Native)
 		  
 		  If f Is Nil Then
@@ -73,40 +79,42 @@ Inherits MCPKit.Tool
 		  
 		  Try
 		    
+		    // Read the whole file, then slice by CHARACTERS after decoding as
+		    // UTF-8. Slicing decoded text (rather than raw bytes) means offset
+		    // and length can never split a multibyte UTF-8 sequence.
 		    Var bs As BinaryStream = BinaryStream.Open(f)
 		    Var fileSize As Int64 = bs.Length
+		    Var content As String = bs.Read(fileSize)
+		    bs.Close
 		    
-		    // Past EOF
-		    If offset >= fileSize Then
-		      bs.Close
+		    content = content.DefineEncoding(Encodings.UTF8)
+		    Var totalChars As Int64 = content.Length
+		    
+		    // Past end of content
+		    If offset >= totalChars And totalChars > 0 Then
 		      Return MCPKit.ToolResult.Success("")
 		    End If
 		    
-		    bs.Position = offset
-		    
-		    Var bytesToRead As Int64
+		    Var slice As String
 		    If length > 0 Then
-		      bytesToRead = Min(length, fileSize - offset)
+		      slice = content.Middle(offset, length)
+		    ElseIf offset > 0 Then
+		      slice = content.Middle(offset)
 		    Else
-		      bytesToRead = fileSize - offset
+		      slice = content
 		    End If
-		    
-		    Var content As String = bs.Read(bytesToRead)
-		    bs.Close
-		    
-		    // Interpret as UTF-8
-		    content = content.DefineEncoding(Encodings.UTF8)
 		    
 		    // Build summary header — placed before content so it is never
 		    // accidentally included if the caller writes content back to disk.
-		    Var summary As String = "// read_file: " + f.Name + " (total " + fileSize.ToString + " bytes"
-		    Var offsetLength As Int64 = offset + bytesToRead - 1
+		    Var summary As String = "// read_file: " + f.Name + " (total " + totalChars.ToString + " characters"
 		    If offset > 0 Or length > 0 Then
-		      summary = summary + ", returning bytes " + offset.ToString + "-" + offsetLength.ToString
+		      Var sliceChars As Int64 = slice.Length
+		      Var lastChar As Int64 = offset + sliceChars - 1
+		      summary = summary + ", returning characters " + offset.ToString + "-" + lastChar.ToString
 		    End If
 		    summary = summary + ")"
 		    
-		    Return MCPKit.ToolResult.Success(summary + EndOfLine + content)
+		    Return MCPKit.ToolResult.Success(summary + EndOfLine + slice)
 		    
 		  Catch e As IOException
 		    Return MCPKit.ToolResult.Failure("Read failed: " + e.Message)
